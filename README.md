@@ -28,7 +28,7 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 
 - **Lead** — Analyzes the plan, composes the team, dispatches tasks, integrates results. Never writes implementation code.
 - **Worker** — Implements a single task in an isolated git worktree. Follows TDD, self-reviews, reports status.
-- **Reviewer** — Validates completed work against a Sprint Contract. Three profiles: `static`, `runtime`, `browser`.
+- **Reviewer** — Validates completed work against a Sprint Contract with evidence-based checklist. Three profiles: `static`, `runtime`, `browser`.
 - **Architect** — Summoned only for tasks requiring design decisions. Produces a design brief for the Worker.
 
 ## Key Features
@@ -41,6 +41,8 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 - **Dynamic dependency analysis** — Execution order determined from plan content (file paths, imports, logical dependencies)
 - **Parallel execution** — Independent tasks run simultaneously with separate Workers
 - **Three-tier review** — `static` (Lead reads diff), `runtime` (agent runs tests), `browser` (agent + UI verification)
+- **Review Ledger** — Every finding tracked with disposition (fixed/deferred/wont-fix) across review rounds, surfaced in the completion report
+- **Sprint Contract QA** — Contracts validated before Worker dispatch (verifiable criteria, non-goals, profile match)
 
 ## How It Works
 
@@ -56,18 +58,19 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 3. Score effort per task
 4. Select reviewer profile per task
 5. Generate Sprint Contracts
-6. Determine team composition
+6. **Contract QA** — Validate each contract (verifiable criteria, test commands, non-goals, profile match, dependency preconditions)
+7. Determine team composition
 
 ### Phase B: Delegate (per task)
 1. Dispatch Architect for design brief (if needed)
 2. Dispatch Worker in isolated worktree
-3. Review against Sprint Contract
-4. Fix loop (max 3 rounds) if REQUEST_CHANGES
-5. Cherry-pick to main on APPROVE
+3. Review against Sprint Contract with **evidence table** (every criterion gets MET/NOT_MET + evidence)
+4. Fix loop (max 3 rounds) if REQUEST_CHANGES — all findings tracked in **Review Ledger** with dispositions
+5. Cherry-pick to main on APPROVE (conflict resolution flow if needed)
 
 ### Phase C: Post-delegate
 1. Collect all results
-2. Generate completion report
+2. Generate **completion report** with per-task review detail (findings, dispositions, deferred items with reasons)
 3. Verify all tasks complete
 
 ## Installation

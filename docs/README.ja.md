@@ -27,7 +27,7 @@
 
 - **Lead** — プラン解析、チーム編成、タスク割当、統合。実装コードは書かない。
 - **Worker** — 隔離された git worktree で単一タスクを実装。TDD とセルフレビューを実行。
-- **Reviewer** — Sprint Contract に基づいて完了した作業を検証。`static`、`runtime`、`browser` の3プロファイル。
+- **Reviewer** — Sprint Contract に基づいてエビデンス付きチェックリストで作業を検証。`static`、`runtime`、`browser` の3プロファイル。
 - **Architect** — 設計判断が必要なタスクのみ召集。Worker 向けの Design Brief を出力。
 
 ## 主な機能
@@ -40,6 +40,8 @@
 - **動的依存解析** — プラン内容（ファイルパス、import、論理的依存）から実行順序を決定
 - **並列実行** — 独立したタスクは複数の Worker で同時実行
 - **3段階レビュー** — `static`（Lead が diff 確認）、`runtime`（エージェントがテスト実行）、`browser`（エージェント + UI 検証）
+- **Review Ledger** — 全指摘を disposition（fixed/deferred/wont-fix）付きで追跡し、完了レポートに集約
+- **Sprint Contract QA** — Worker 派遣前に Contract を検証（検証可能な基準、非目標、プロファイル一致）
 
 ## 動作フロー
 
@@ -55,18 +57,19 @@
 3. タスクごとの Effort Score を算出
 4. タスクごとの reviewer profile を選択
 5. Sprint Contract を生成
-6. チーム構成を決定
+6. **Contract QA** — 各 Contract を検証（検証可能な基準、テストコマンド、非目標、プロファイル一致、依存関係の前提条件）
+7. チーム構成を決定
 
 ### Phase B: 実行（タスクごと）
 1. Architect を派遣して Design Brief を取得（必要な場合のみ）
 2. Worker を隔離 worktree に派遣
-3. Sprint Contract に基づいてレビュー
-4. REQUEST_CHANGES の場合は修正ループ（最大3回）
-5. APPROVE で main に cherry-pick
+3. Sprint Contract に基づいて**エビデンステーブル**でレビュー（各基準に MET/NOT_MET + エビデンス）
+4. REQUEST_CHANGES の場合は修正ループ（最大3回）— 全指摘を **Review Ledger** で disposition 付き追跡
+5. APPROVE で main に cherry-pick（コンフリクト時は解決フローあり）
 
 ### Phase C: 完了処理
 1. 全結果を収集
-2. 完了レポートを生成
+2. **完了レポート**を生成（タスクごとのレビュー詳細、指摘・disposition・deferred 理由を含む）
 3. 全タスクの完了を検証
 
 ## インストール
