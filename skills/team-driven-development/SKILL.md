@@ -66,61 +66,81 @@ The Architect reviews the task spec and produces a **design brief** — a short 
 digraph process {
     rankdir=TB;
 
+    "Phase A-0: Triage" [shape=box style=filled fillcolor=lightyellow];
+    "Quick Score <= 1?" [shape=diamond];
+    "User accepts Lite?" [shape=diamond];
+    "Lite Mode" [shape=box style=filled fillcolor=palegreen];
     "Phase A: Pre-delegate" [shape=box style=filled fillcolor=lightyellow];
     "Phase B: Delegate" [shape=box style=filled fillcolor=lightblue];
     "Phase C: Post-delegate" [shape=box style=filled fillcolor=lightgreen];
 
+    subgraph cluster_triage {
+        label="Phase A-0: Triage";
+        "A0: Read plan, count tasks/files/domains" [shape=box];
+        "A0: Calculate Quick Score" [shape=box];
+
+        "A0: Read plan, count tasks/files/domains" -> "A0: Calculate Quick Score";
+    }
+
+    "A0: Calculate Quick Score" -> "Quick Score <= 1?";
+    "Quick Score <= 1?" -> "User accepts Lite?" [label="yes"];
+    "Quick Score <= 1?" -> "Phase A: Pre-delegate" [label="no"];
+    "User accepts Lite?" -> "Lite Mode" [label="yes"];
+    "User accepts Lite?" -> "Phase A: Pre-delegate" [label="no"];
+
     subgraph cluster_phase_a {
-        label="Phase A: Pre-delegate";
-        "A1: Read plan, extract all tasks" [shape=box];
-        "A2: Analyze dependencies (files, imports, logical)" [shape=box];
+        label="Phase A: Pre-delegate (Full Mode)";
+        "A1: Extract all tasks" [shape=box];
+        "A2: Analyze dependencies" [shape=box];
         "A3: Score effort per task" [shape=box];
-        "A4: Select reviewer_profile per task" [shape=box];
-        "A5: Generate Sprint Contract per task" [shape=box];
+        "A4: Select reviewer_profile" [shape=box];
+        "A5: Generate Sprint Contracts" [shape=box];
         "A6: Determine team composition" [shape=box];
 
-        "A1: Read plan, extract all tasks" -> "A2: Analyze dependencies (files, imports, logical)";
-        "A2: Analyze dependencies (files, imports, logical)" -> "A3: Score effort per task";
-        "A3: Score effort per task" -> "A4: Select reviewer_profile per task";
-        "A4: Select reviewer_profile per task" -> "A5: Generate Sprint Contract per task";
-        "A5: Generate Sprint Contract per task" -> "A6: Determine team composition";
+        "A1: Extract all tasks" -> "A2: Analyze dependencies";
+        "A2: Analyze dependencies" -> "A3: Score effort per task";
+        "A3: Score effort per task" -> "A4: Select reviewer_profile";
+        "A4: Select reviewer_profile" -> "A5: Generate Sprint Contracts";
+        "A5: Generate Sprint Contracts" -> "A6: Determine team composition";
+    }
+
+    subgraph cluster_lite {
+        label="Lite Mode";
+        "L1: Execute tasks sequentially (Lead)" [shape=box];
+        "L2: Commit after each task" [shape=box];
+        "L3: Dispatch Reviewer (full diff)" [shape=box];
+        "L4: Approved?" [shape=diamond];
+        "L4a: Lead fixes (max 2 rounds)" [shape=box];
+        "L5: Brief summary" [shape=box];
+
+        "L1: Execute tasks sequentially (Lead)" -> "L2: Commit after each task";
+        "L2: Commit after each task" -> "L3: Dispatch Reviewer (full diff)";
+        "L3: Dispatch Reviewer (full diff)" -> "L4: Approved?";
+        "L4: Approved?" -> "L5: Brief summary" [label="yes"];
+        "L4: Approved?" -> "L4a: Lead fixes (max 2 rounds)" [label="no"];
+        "L4a: Lead fixes (max 2 rounds)" -> "L3: Dispatch Reviewer (full diff)";
     }
 
     subgraph cluster_phase_b {
-        label="Phase B: Delegate (per task, dependency order)";
-        "B1: Architect review? (if design task)" [shape=diamond];
-        "B1a: Dispatch Architect, receive design brief" [shape=box];
-        "B2: Dispatch Worker (worktree, sprint contract)" [shape=box];
-        "B3: Worker reports status" [shape=box];
-        "B4: Review (static/runtime/browser)" [shape=diamond];
-        "B4a: Lead reviews diff + contract" [shape=box];
-        "B4b: Dispatch Reviewer agent" [shape=box];
-        "B5: Approved?" [shape=diamond];
-        "B5a: Worker fixes (max 3 rounds)" [shape=box];
-        "B6: Cherry-pick to main" [shape=box];
+        label="Phase B: Delegate (Full Mode, per task)";
+        "B1: Architect review?" [shape=diamond];
+        "B2: Dispatch Worker" [shape=box];
+        "B3: Review" [shape=box];
+        "B4: Cherry-pick to main" [shape=box];
 
-        "B1: Architect review? (if design task)" -> "B1a: Dispatch Architect, receive design brief" [label="yes"];
-        "B1: Architect review? (if design task)" -> "B2: Dispatch Worker (worktree, sprint contract)" [label="no"];
-        "B1a: Dispatch Architect, receive design brief" -> "B2: Dispatch Worker (worktree, sprint contract)";
-        "B2: Dispatch Worker (worktree, sprint contract)" -> "B3: Worker reports status";
-        "B3: Worker reports status" -> "B4: Review (static/runtime/browser)";
-        "B4: Review (static/runtime/browser)" -> "B4a: Lead reviews diff + contract" [label="static"];
-        "B4: Review (static/runtime/browser)" -> "B4b: Dispatch Reviewer agent" [label="runtime/browser"];
-        "B4a: Lead reviews diff + contract" -> "B5: Approved?";
-        "B4b: Dispatch Reviewer agent" -> "B5: Approved?";
-        "B5: Approved?" -> "B6: Cherry-pick to main" [label="yes"];
-        "B5: Approved?" -> "B5a: Worker fixes (max 3 rounds)" [label="no"];
-        "B5a: Worker fixes (max 3 rounds)" -> "B4: Review (static/runtime/browser)";
+        "B1: Architect review?" -> "B2: Dispatch Worker";
+        "B2: Dispatch Worker" -> "B3: Review";
+        "B3: Review" -> "B4: Cherry-pick to main";
     }
 
     subgraph cluster_phase_c {
-        label="Phase C: Post-delegate";
-        "C1: Collect all commit logs" [shape=box];
-        "C2: Generate completion report" [shape=box];
-        "C3: Verify all tasks complete" [shape=box];
+        label="Phase C: Post-delegate (Full Mode)";
+        "C1: Collect results" [shape=box];
+        "C2: Completion report" [shape=box];
+        "C3: Verify" [shape=box];
 
-        "C1: Collect all commit logs" -> "C2: Generate completion report";
-        "C2: Generate completion report" -> "C3: Verify all tasks complete";
+        "C1: Collect results" -> "C2: Completion report";
+        "C2: Completion report" -> "C3: Verify";
     }
 
     "Phase A: Pre-delegate" -> "Phase B: Delegate";
@@ -128,9 +148,40 @@ digraph process {
 }
 ```
 
-## Phase A: Pre-delegate
+## Phase A-0: Triage
 
 **Announce:** "I'm using team-driven-development to execute this plan as a team."
+
+Read the plan file and calculate the Quick Score from surface-level metrics before running the full analysis pipeline.
+
+### Quick Score
+
+| Factor | Condition | Score |
+|--------|-----------|-------|
+| Task count | 1-2 tasks | 0 |
+| Task count | 3-4 tasks | +1 |
+| Task count | 5+ tasks | +2 |
+| Total files | ≤ 3 files across all tasks | 0 |
+| Total files | 4-6 files | +1 |
+| Total files | 7+ files | +2 |
+| Domain spread | Single directory/module | 0 |
+| Domain spread | Multiple directories | +1 |
+| Design keywords | "architecture", "migration", "security", "API design" in any task | +1 |
+
+**Quick Score ≤ 1 → propose Lite Mode to user.**
+
+### Proposal Message
+
+> **This plan has [N] tasks touching [M] files — lightweight enough for direct execution. I'll implement the tasks directly and have a Reviewer check the final diff. Use Lite Mode?**
+>
+> - **Yes** — Direct execution + single review at the end
+> - **No** — Full team process (Workers, Sprint Contracts, per-task review)
+
+If the user accepts → proceed to Lite Mode.
+If the user declines → proceed to Phase A (Full Mode).
+If Quick Score > 1 → skip proposal, proceed directly to Phase A (Full Mode).
+
+## Phase A: Pre-delegate
 
 ### A-1: Read and Extract
 
