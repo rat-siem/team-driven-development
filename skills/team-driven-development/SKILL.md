@@ -137,7 +137,10 @@ digraph process {
         "A2: Analyze dependencies" -> "A3: Score effort per task";
         "A3: Score effort per task" -> "A4: Select reviewer_profile";
         "A4: Select reviewer_profile" -> "A5: Generate Sprint Contracts";
-        "A5: Generate Sprint Contracts" -> "A6: Determine team composition";
+        "A5.5: Contract QA" [shape=box];
+
+        "A5: Generate Sprint Contracts" -> "A5.5: Contract QA";
+        "A5.5: Contract QA" -> "A6: Determine team composition";
     }
 
     subgraph cluster_lite {
@@ -354,6 +357,23 @@ For each task, generate a Sprint Contract:
 ### Effort Score: N
 ### Model: cheap | standard | capable
 ```
+
+### A-5.5: Contract QA
+
+Before dispatching any Worker, the Lead validates each Sprint Contract against this checklist:
+
+```
+Contract QA Checklist:
+1. [ ] All Success Criteria are specific and verifiable
+       NG: "Code works correctly"
+       OK: "GET /api/users returns 200 with JSON array"
+2. [ ] Test commands include file paths or filters
+3. [ ] At least one Non-Goal is defined
+4. [ ] Reviewer Profile matches task characteristics
+5. [ ] Dependencies on incomplete tasks are stated as preconditions
+```
+
+**If any item fails:** Lead fixes the Contract directly and re-checks once. If still failing after one fix attempt, the task definition is ambiguous — escalate to human.
 
 ### A-6: Team Composition
 

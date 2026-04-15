@@ -88,3 +88,13 @@ Always include at least one non-goal. If nothing obvious, use:
 | 0-1 | haiku (cheap) | Mechanical: clear spec, few files |
 | 2 | sonnet (standard) | Integration: multi-file, needs judgment |
 | 3+ | opus (capable) | Design: complex, cross-cutting |
+
+## Contract QA
+
+After generating each Sprint Contract, the Lead runs a QA check before dispatching the Worker. See SKILL.md Phase A-5.5 for the full checklist. Key validations:
+
+- Success Criteria must be specific and verifiable (not vague)
+- Test commands must include file paths or filters
+- At least one Non-Goal must be defined
+- Reviewer Profile must match task characteristics
+- Dependencies must be stated as preconditions if the dependent task is not yet complete
