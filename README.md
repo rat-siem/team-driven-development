@@ -35,7 +35,7 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 
 - **Quick Plan** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Use `/quick-plan` or let team-driven-development suggest it when no plan exists.
 - **Solo Review** — Standalone code review using the Reviewer agent. Auto-detects review target (staged, uncommitted, or branch diff), adapts criteria (Sprint Contract → plan-derived → generic), and produces structured verdicts. Use `/solo-review` for on-demand review without the full team workflow.
-- **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process
+- **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process. Use `--lite` or `--full` to skip triage and select mode directly.
 - **Dynamic team composition** — Roles assigned per task based on complexity and type
 - **Sprint Contracts** — Success criteria, non-goals, and review profile defined before work begins
 - **Effort Scoring** — Automatic model selection (cheap/standard/capable) based on task complexity
