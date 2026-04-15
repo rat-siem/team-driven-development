@@ -112,4 +112,4 @@ After generating each Sprint Contract, the Lead runs a QA check before dispatchi
 3. At least one Non-Goal must be defined
 4. Reviewer Profile must match task characteristics
 5. Dependencies must be stated as preconditions if the dependent task is not yet complete
-6. [ ] Guidelines section references only files that exist in `guidelines/`
+6. Guidelines section references only files that exist in `guidelines/`
