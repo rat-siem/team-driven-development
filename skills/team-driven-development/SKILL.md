@@ -480,6 +480,10 @@ For each task, generate a Sprint Contract:
 
 ### Reviewer Profile: static | runtime | browser
 
+### Guidelines
+- [domain]: guidelines/[domain].md
+<!-- One line per relevant domain. Omit if no guidelines exist for this task's domains. -->
+
 ### Runtime Validation (if runtime/browser)
 - `npm test -- --filter=relevant-tests`
 - `npm run typecheck`
@@ -545,6 +549,7 @@ Use prompt template: `./prompts/architect-prompt.md`
 Dispatch Worker subagent with:
 - Full task text (from plan, not file reference)
 - Sprint Contract
+- Domain Guidelines content (read from files listed in Sprint Contract's Guidelines section)
 - Design brief (if Architect was consulted)
 - Codebase context (relevant files, patterns)
 - Model selection based on effort score
@@ -590,13 +595,13 @@ Coverage: N/N criteria evaluated
 5. Verdict: APPROVE or REQUEST_CHANGES with specific issues
 
 **runtime (Reviewer agent):**
-1. Dispatch Reviewer subagent with diff + Sprint Contract
+1. Dispatch Reviewer subagent with diff + Sprint Contract + Domain Guidelines (if any)
 2. Reviewer runs validation commands from Sprint Contract
 3. Reviewer checks integration with existing code
 4. Verdict: APPROVE or REQUEST_CHANGES
 
 **browser (Reviewer agent + browser):**
-1. Dispatch Reviewer subagent with diff + Sprint Contract
+1. Dispatch Reviewer subagent with diff + Sprint Contract + Domain Guidelines (if any)
 2. Reviewer runs tests AND browser validation items
 3. Reviewer verifies UI flows from Sprint Contract
 4. Verdict: APPROVE or REQUEST_CHANGES
