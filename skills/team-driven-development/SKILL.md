@@ -60,6 +60,42 @@ The Architect is NOT summoned for every task. Summon when:
 
 The Architect reviews the task spec and produces a **design brief** — a short document specifying the approach, key interfaces, and constraints. The Worker receives this brief alongside the task.
 
+### Review Ledger
+
+The Lead maintains a **Review Ledger** for each task — a structured record of all review findings, their severity, and how they were resolved. The Ledger is managed in the Lead's context (not written to filesystem) and feeds into the Completion Report.
+
+#### Ledger Format
+
+```markdown
+## Review Ledger: Task N - [Task Name]
+
+### Round 1
+
+#### Worker Self-Review
+| # | Severity | File:Line | Finding | Source |
+|---|----------|-----------|---------|--------|
+| W-1 | minor | src/foo.ts:42 | Unused import | self-review |
+
+#### Reviewer Findings
+| # | Severity | File:Line | Finding | Source |
+|---|----------|-----------|---------|--------|
+| R-1 | major | src/bar.ts:15 | Missing null check | reviewer |
+
+#### Disposition
+| # | Source | Severity | Disposition | Detail |
+|---|--------|----------|-------------|--------|
+| W-1 | self-review | minor | fixed | Removed in same commit |
+| R-1 | reviewer | major | fixed | Added null check, commit abc123 |
+
+### Final Status: APPROVE (Round N)
+```
+
+#### Disposition Rules
+
+- **Three dispositions only:** `fixed`, `deferred` (reason required), `wont-fix` (reason required)
+- **critical/major findings MUST be `fixed`.** Only minor/recommendation may be `deferred` or `wont-fix`.
+- Lead verifies all criteria show MET before proceeding to cherry-pick.
+
 ## The Process
 
 ```dot
@@ -387,9 +423,17 @@ Execute review based on the Sprint Contract's reviewer_profile:
 
 **static (Lead reviews directly):**
 1. Read the Worker's diff
-2. Check each Sprint Contract criterion
+2. Check each Sprint Contract criterion — record in Ledger using the evidence table format:
+
+| # | Criterion | Status | Evidence |
+|---|-----------|--------|----------|
+| 1 | [criterion] | MET/NOT_MET | [what you observed] |
+
+Coverage: N/N criteria evaluated
+
 3. Verify non-goals were respected
-4. Verdict: APPROVE or REQUEST_CHANGES with specific issues
+4. Record findings with L-prefixed IDs (L-1, L-2, ...) in the Ledger
+5. Verdict: APPROVE or REQUEST_CHANGES with specific issues
 
 **runtime (Reviewer agent):**
 1. Dispatch Reviewer subagent with diff + Sprint Contract
@@ -402,6 +446,14 @@ Execute review based on the Sprint Contract's reviewer_profile:
 2. Reviewer runs tests AND browser validation items
 3. Reviewer verifies UI flows from Sprint Contract
 4. Verdict: APPROVE or REQUEST_CHANGES
+
+**All profiles — Ledger integration:**
+
+After review (static, runtime, or browser), the Lead:
+1. Transfers Worker self-review findings (W-prefixed) into the Ledger
+2. Transfers Reviewer findings (R-prefixed) or Lead findings (L-prefixed) into the Ledger
+3. Records disposition for each finding
+4. Verifies critical/major findings are all `fixed` before proceeding
 
 Use prompt template: `./prompts/reviewer-prompt.md`
 
