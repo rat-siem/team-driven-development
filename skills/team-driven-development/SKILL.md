@@ -31,8 +31,16 @@ digraph when_to_use {
 **No plan available:**
 - If invoked without an implementation plan, suggest using the `quick-plan` skill first
 - Message: "No implementation plan found. Use quick-plan to generate a spec and plan first?"
-- If the user accepts, invoke the quick-plan skill with the user's original request
+- If the user accepts, invoke the quick-plan skill and pass the user's original request as the skill argument
 - If the user declines, exit gracefully
+
+**Capturing the original request for quick-plan handoff:**
+
+Before reading or searching for a plan file, capture the user's verbatim message that triggered this skill invocation. This message is the `original_request`. When handing off to quick-plan:
+
+1. Invoke the quick-plan skill with the `original_request` as the argument
+2. If the user provided additional context (file paths, error messages, feature descriptions) alongside the invocation, include that context in the argument
+3. Example: if the user said "Add rate limiting to the API endpoints", invoke quick-plan with argument "Add rate limiting to the API endpoints"
 
 **Lite Mode is suggested when:**
 - Plan has 1-2 tasks with ≤ 3 files total

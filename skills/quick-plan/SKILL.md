@@ -78,6 +78,15 @@ Do NOT deep-dive every aspect of the request. Instead:
 - Error handling approach when the codebase has an established pattern
 - Testing strategy when the project has existing test patterns
 
+**Fallback when the user defers a decision:**
+
+When the user responds with "either is fine", "I'll leave it to you", "up to you", or similar deferral:
+
+1. **Select the best possible method** — choose the approach that most comprehensively satisfies all potential requests and requirements, even if it results in broader scope than the minimal interpretation.
+2. **Do not default to the conservative/minimal option.** The user has delegated judgment to you — use that trust to produce the strongest design. A comprehensive plan that covers edge cases and related concerns is preferable to a narrow one that leaves gaps.
+3. **Note the deferred decision in the spec** — record what the user deferred, which option you chose, and why. Format: `**Deferred decision:** [question] → Chose [option] because [reasoning]`
+4. This applies per-question. If the user defers one question but answers another specifically, respect their specific answer and apply this rule only to the deferred one.
+
 ## Spec Generation
 
 Save to: `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`
@@ -226,7 +235,7 @@ If Yes: invoke the team-driven-development skill. Do NOT invoke any superpowers 
 - **Infer, don't interrogate** — Use codebase context to fill in gaps. Only ask what you truly cannot infer.
 - **Full-quality output** — The process is light; the documents are not. Spec and plan meet the same standard as brainstorming + writing-plans.
 - **One question at a time** — When you do need to ask, keep it focused. Multiple-choice preferred.
-- **YAGNI** — Don't design features the user didn't ask for.
+- **YAGNI unless deferred** — Don't design features the user didn't ask for. But when the user defers a decision to you, choose the most comprehensive approach that fully satisfies all potential requirements.
 - **Self-contained** — This skill does not depend on or invoke superpowers skills.
 
 ## Red Flags
