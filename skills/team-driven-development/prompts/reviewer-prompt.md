@@ -24,6 +24,11 @@ Agent tool:
     [Paste git diff or list of changed files with key changes summarized.
      For large diffs, summarize and highlight areas of concern.]
 
+    ## Domain Guidelines (if applicable)
+
+    [Paste the content of each guidelines/{domain}.md file referenced in the
+     Sprint Contract's Guidelines section. Omit this section if no guidelines apply.]
+
     ## Files Changed
 
     [List all files the Worker modified/created]
@@ -55,7 +60,15 @@ Agent tool:
     - Check visual states match expectations
     - Report what you see
 
-    ### 5. Code Quality Scan
+    ### 5. Guidelines Compliance (if Domain Guidelines provided)
+
+    Check the Worker's implementation against each relevant domain guideline:
+    - Systematic violations (e.g., using wrong color palette throughout, ignoring spacing system) → major
+    - Isolated deviations (e.g., one inconsistent spacing value, single naming mismatch) → minor
+
+    Skip this section if no Domain Guidelines were provided.
+
+    ### 6. Code Quality Scan
 
     Quick scan for:
     - Security vulnerabilities (critical)
