@@ -70,6 +70,7 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 Use the `/plugin` slash command inside a Claude Code session:
 
 ```
+/plugin marketplace add https://github.com/rat-siem/team-driven-development
 /plugin install team-driven-development@team-driven-dev
 ```
 

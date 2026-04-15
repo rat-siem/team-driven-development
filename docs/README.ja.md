@@ -69,6 +69,7 @@
 Claude Code セッション内で `/plugin` スラッシュコマンドを使用します：
 
 ```
+/plugin marketplace add https://github.com/rat-siem/team-driven-development
 /plugin install team-driven-development@team-driven-dev
 ```
 
