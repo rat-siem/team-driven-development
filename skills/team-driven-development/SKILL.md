@@ -5,11 +5,9 @@ description: Use when executing implementation plans with a team of specialized 
 
 # Team-Driven Development
 
-Execute implementation plans by orchestrating a team of specialized subagents. The Lead (you) coordinates Workers, Reviewers, and optionally an Architect — each with isolated context and clear responsibilities.
+Execute implementation plans by orchestrating specialized subagents. The Lead (you) coordinates Workers, Reviewers, and optionally an Architect — each with isolated context and clear responsibilities.
 
-**Why teams:** Complex plans benefit from role specialization. A Worker focused purely on implementation produces better code than an agent juggling implementation, review, and architecture decisions simultaneously. Role isolation prevents context pollution and enables parallel execution of independent tasks.
-
-**Core principle:** Dynamic team composition + Sprint Contracts + worktree isolation = high quality, fast iteration
+**Why teams:** Role specialization prevents context pollution and enables parallel execution.
 
 ## When to Use
 
@@ -18,265 +16,65 @@ digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
     "team-driven-development" [shape=box];
     "Suggest quick-plan" [shape=box];
-
     "Have implementation plan?" -> "team-driven-development" [label="yes"];
     "Have implementation plan?" -> "Suggest quick-plan" [label="no"];
 }
 ```
 
-**Use when:**
 - You have an implementation plan to execute
-- Simple plans automatically trigger a Lite Mode suggestion — no need to avoid this skill for small tasks
+- Simple plans automatically trigger Lite Mode suggestion
 
 ## Arguments
 
-- No arguments → auto-triage (Quick Score determines mode proposal)
-- `--lite` → skip triage, use Lite Mode directly. If Quick Score > 1, warn but proceed.
-- `--full` → skip triage, use Full Mode directly.
+- No arguments → auto-triage (Quick Score determines mode)
+- `--lite` → skip triage, use Lite Mode. Warn if Quick Score > 1.
+- `--full` → skip triage, use Full Mode.
 
-Examples:
-- `/team-driven-development` — auto-triage
-- `/team-driven-development --lite` — force Lite Mode
-- `/team-driven-development --full` — force Full Mode
-
-**No plan available:**
-- If invoked without an implementation plan, suggest using the `quick-plan` skill first
-- Message: "No implementation plan found. Use quick-plan to generate a spec and plan first?"
-- If the user accepts, invoke the quick-plan skill and pass the user's original request as the skill argument
-- If the user declines, exit gracefully
-
-**Capturing the original request for quick-plan handoff:**
-
-Before reading or searching for a plan file, capture the user's verbatim message that triggered this skill invocation. This message is the `original_request`. When handing off to quick-plan:
-
-1. Invoke the quick-plan skill with the `original_request` as the argument
-2. If the user provided additional context (file paths, error messages, feature descriptions) alongside the invocation, include that context in the argument
-3. Example: if the user said "Add rate limiting to the API endpoints", invoke quick-plan with argument "Add rate limiting to the API endpoints"
-
-**Lite Mode is suggested when:**
-- Plan has 1-2 tasks with ≤ 3 files total
-- No design keywords or multi-domain spread
-
-**Full Mode is used when:**
-- Plan has 3+ tasks with varying complexity
-- Tasks span multiple domains (frontend + backend, infra + app, etc.)
-- Design decisions are needed before or during implementation
-- You want parallel execution of independent tasks
-- Quality gates need to vary by task type (static review vs browser testing)
+**No plan available:** Suggest `quick-plan` skill. If accepted, invoke with the user's original request as argument. Capture the user's verbatim message before searching for a plan file — this is the `original_request`. Include any additional context (file paths, errors, descriptions) the user provided.
 
 ## The Team
 
-### Roles
+| Role | When | Responsibility | Model |
+|------|------|----------------|-------|
+| **Lead** (you) | Always | Orchestration, dependency analysis, integration, judgment | Session model |
+| **Worker** | Every task | Implementation + TDD + self-review in worktree | Per effort score |
+| **Reviewer** | Every task | Validate against Sprint Contract | sonnet |
+| **Architect** | Design tasks | Design decisions, API shape, data model | opus |
 
-| Role | When Summoned | Responsibility | Model |
-|------|--------------|----------------|-------|
-| **Lead** (you) | Always | Orchestration, dependency analysis, integration, final judgment | Current session model |
-| **Worker** | Every task | Implementation + TDD + self-review in isolated worktree | Cheap for mechanical, standard for integration |
-| **Reviewer** | Every task | Validates against Sprint Contract (static/runtime/browser) | Standard |
-| **Architect** | Design tasks only | Upfront design decisions, API shape, data model review | Most capable |
-
-### When to Summon the Architect
-
-The Architect is NOT summoned for every task. Summon when:
-- Task requires choosing between multiple valid approaches
-- Task defines interfaces that other tasks will depend on
-- Task involves data model changes or API design
-- Effort score is high AND the task touches core/shared code
-
-The Architect reviews the task spec and produces a **design brief** — a short document specifying the approach, key interfaces, and constraints. The Worker receives this brief alongside the task.
+**Summon Architect when:** Task requires choosing between approaches, defines interfaces others depend on, involves data model/API design, or has effort 3+ touching core/shared code. Architect produces a **design brief** (approach, interfaces, constraints).
 
 ### Review Ledger
 
-The Lead maintains a **Review Ledger** for each task — a structured record of all review findings, their severity, and how they were resolved. The Ledger is managed in the Lead's context (not written to filesystem) and feeds into the Completion Report.
-
-#### Ledger Format
+Lead maintains per task. Managed in Lead's context (not filesystem). Feeds into Completion Report.
 
 ```markdown
-## Review Ledger: Task N - [Task Name]
-
+## Review Ledger: Task N - [Name]
 ### Round 1
-
 #### Worker Self-Review
 | # | Severity | File:Line | Finding | Source |
 |---|----------|-----------|---------|--------|
 | W-1 | minor | src/foo.ts:42 | Unused import | self-review |
-
 #### Reviewer Findings
 | # | Severity | File:Line | Finding | Source |
 |---|----------|-----------|---------|--------|
 | R-1 | major | src/bar.ts:15 | Missing null check | reviewer |
-
 #### Disposition
 | # | Source | Severity | Disposition | Detail |
 |---|--------|----------|-------------|--------|
-| W-1 | self-review | minor | fixed | Removed in same commit |
-| R-1 | reviewer | major | fixed | Added null check, commit abc123 |
-
+| W-1 | self-review | minor | fixed | Same commit |
+| R-1 | reviewer | major | fixed | Commit abc123 |
 ### Final Status: APPROVE (Round N)
 ```
 
-#### Disposition Rules
-
-- **Three dispositions only:** `fixed`, `deferred` (reason required), `wont-fix` (reason required)
-- **critical/major findings MUST be `fixed`.** Only minor/recommendation may be `deferred` or `wont-fix`.
-- Lead verifies all criteria show MET before proceeding to cherry-pick.
-
-## The Process
-
-```dot
-digraph process {
-    rankdir=TB;
-
-    "Phase A-0: Triage" [shape=box style=filled fillcolor=lightyellow];
-    "Explicit mode flag?" [shape=diamond];
-    "Flag = --lite" [shape=diamond];
-    "Quick Score > 1?" [shape=diamond];
-    "Warn and proceed Lite" [shape=box];
-    "Quick Score <= 1?" [shape=diamond];
-    "User accepts Lite?" [shape=diamond];
-    "Lite Mode" [shape=box style=filled fillcolor=palegreen];
-    "Phase A: Pre-delegate" [shape=box style=filled fillcolor=lightyellow];
-    "Phase B: Delegate" [shape=box style=filled fillcolor=lightblue];
-    "Phase C: Post-delegate" [shape=box style=filled fillcolor=lightgreen];
-
-    subgraph cluster_phase0 {
-        label="Phase 0: Guideline Check";
-        "P0-1: Detect domains from file paths" [shape=box];
-        "P0-2: Check guidelines/ for each domain" [shape=box];
-        "P0-3: All exist?" [shape=diamond];
-        "P0-4: Generate drafts from code/templates" [shape=box];
-        "P0-5: User approves?" [shape=diamond];
-
-        "P0-1: Detect domains from file paths" -> "P0-2: Check guidelines/ for each domain";
-        "P0-2: Check guidelines/ for each domain" -> "P0-3: All exist?";
-        "P0-3: All exist?" -> "P0-4: Generate drafts from code/templates" [label="missing"];
-        "P0-4: Generate drafts from code/templates" -> "P0-5: User approves?";
-        "P0-5: User approves?" -> "P0-4: Generate drafts from code/templates" [label="changes requested"];
-    }
-
-    "P0-3: All exist?" -> "Phase A-0: Triage" [label="all exist"];
-    "P0-5: User approves?" -> "Phase A-0: Triage" [label="approved"];
-
-    subgraph cluster_triage {
-        label="Phase A-0: Triage";
-        "A0: Read plan, count tasks/files/domains" [shape=box];
-        "A0: Calculate Quick Score" [shape=box];
-
-        "A0: Read plan, count tasks/files/domains" -> "A0: Calculate Quick Score";
-    }
-
-    "A0: Calculate Quick Score" -> "Explicit mode flag?";
-    "Explicit mode flag?" -> "Flag = --lite" [label="yes"];
-    "Explicit mode flag?" -> "Quick Score <= 1?" [label="no"];
-    "Flag = --lite" -> "Quick Score > 1?" [label="--lite"];
-    "Flag = --lite" -> "Phase A: Pre-delegate" [label="--full"];
-    "Quick Score > 1?" -> "Warn and proceed Lite" [label="yes"];
-    "Quick Score > 1?" -> "Lite Mode" [label="no"];
-    "Warn and proceed Lite" -> "Lite Mode";
-    "Quick Score <= 1?" -> "User accepts Lite?" [label="yes"];
-    "Quick Score <= 1?" -> "Phase A: Pre-delegate" [label="no"];
-    "User accepts Lite?" -> "Lite Mode" [label="yes"];
-    "User accepts Lite?" -> "Phase A: Pre-delegate" [label="no"];
-
-    subgraph cluster_phase_a {
-        label="Phase A: Pre-delegate (Full Mode)";
-        "A1: Extract all tasks" [shape=box];
-        "A2: Analyze dependencies" [shape=box];
-        "A3: Score effort per task" [shape=box];
-        "A4: Select reviewer_profile" [shape=box];
-        "A5: Generate Sprint Contracts" [shape=box];
-        "A6: Determine team composition" [shape=box];
-
-        "A1: Extract all tasks" -> "A2: Analyze dependencies";
-        "A2: Analyze dependencies" -> "A3: Score effort per task";
-        "A3: Score effort per task" -> "A4: Select reviewer_profile";
-        "A4: Select reviewer_profile" -> "A5: Generate Sprint Contracts";
-        "A5.5: Contract QA" [shape=box];
-
-        "A5: Generate Sprint Contracts" -> "A5.5: Contract QA";
-        "A5.5: Contract QA" -> "A6: Determine team composition";
-    }
-
-    subgraph cluster_lite {
-        label="Lite Mode";
-        "L1: Execute tasks sequentially (Lead)" [shape=box];
-        "L2: Commit after each task" [shape=box];
-        "L3: Dispatch Reviewer (full diff)" [shape=box];
-        "L4: Approved?" [shape=diamond];
-        "L4a: Lead fixes (max 2 rounds)" [shape=box];
-        "L5: Brief summary" [shape=box];
-
-        "L1: Execute tasks sequentially (Lead)" -> "L2: Commit after each task";
-        "L2: Commit after each task" -> "L3: Dispatch Reviewer (full diff)";
-        "L3: Dispatch Reviewer (full diff)" -> "L4: Approved?";
-        "L4: Approved?" -> "L5: Brief summary" [label="yes"];
-        "L4: Approved?" -> "L4a: Lead fixes (max 2 rounds)" [label="no"];
-        "L4a: Lead fixes (max 2 rounds)" -> "L3: Dispatch Reviewer (full diff)";
-    }
-
-    subgraph cluster_phase_b {
-        label="Phase B: Delegate (Full Mode, per task)";
-        "B1: Architect review?" [shape=diamond];
-        "B1a: Dispatch Architect" [shape=box];
-        "B2: Dispatch Worker (worktree)" [shape=box];
-        "B3: Worker reports status" [shape=box];
-        "B4: Review (static/runtime/browser)" [shape=diamond];
-        "B4a: Lead reviews diff" [shape=box];
-        "B4b: Dispatch Reviewer agent" [shape=box];
-        "B5: Approved?" [shape=diamond];
-        "B5a: Worker fixes (max 3 rounds)" [shape=box];
-        "B6: Cherry-pick to main" [shape=box];
-
-        "B1: Architect review?" -> "B1a: Dispatch Architect" [label="yes"];
-        "B1: Architect review?" -> "B2: Dispatch Worker (worktree)" [label="no"];
-        "B1a: Dispatch Architect" -> "B2: Dispatch Worker (worktree)";
-        "B2: Dispatch Worker (worktree)" -> "B3: Worker reports status";
-        "B3: Worker reports status" -> "B4: Review (static/runtime/browser)";
-        "B4: Review (static/runtime/browser)" -> "B4a: Lead reviews diff" [label="static"];
-        "B4: Review (static/runtime/browser)" -> "B4b: Dispatch Reviewer agent" [label="runtime/browser"];
-        "B4a: Lead reviews diff" -> "B5: Approved?";
-        "B4b: Dispatch Reviewer agent" -> "B5: Approved?";
-        "B5: Approved?" -> "B6: Cherry-pick to main" [label="yes"];
-        "B5: Approved?" -> "B5a: Worker fixes (max 3 rounds)" [label="no"];
-        "B5a: Worker fixes (max 3 rounds)" -> "B4: Review (static/runtime/browser)";
-    }
-
-    subgraph cluster_phase_c {
-        label="Phase C: Post-delegate (Full Mode)";
-        "C1: Collect results" [shape=box];
-        "C2: Completion report" [shape=box];
-        "C3: Verify" [shape=box];
-
-        "C1: Collect results" -> "C2: Completion report";
-        "C2: Completion report" -> "C3: Verify";
-    }
-
-    "Phase A: Pre-delegate" -> "Phase B: Delegate";
-    "Phase B: Delegate" -> "Phase C: Post-delegate";
-}
-```
+**Dispositions:** `fixed`, `deferred` (reason required), `wont-fix` (reason required). Critical/major MUST be `fixed`.
 
 ## Phase 0: Guideline Check
 
-Detect domain-specific guidelines needed for the plan and ensure they exist before proceeding.
+**Trigger:** Runs only when plan creates new files OR modifies 3+ files in a detected domain. Otherwise skip to A-0. Controls *generation* only — existing `guidelines/{domain}.md` files are always incorporated into Sprint Contracts.
 
-### Trigger Condition
+**Custom domains:** Any file in project's `guidelines/` is detected and incorporated. Lead uses judgment to match custom domains to tasks.
 
-Phase 0 runs only when at least one of the following is true for a detected domain:
-- The plan includes tasks that **create new files** in that domain
-- The plan includes tasks that **modify 3 or more files** in that domain
-
-If neither condition is met, skip Phase 0 entirely and proceed to Phase A-0: Triage. Small bug fixes and minor edits proceed without interruption.
-
-**Note:** This condition controls guideline *generation* only. If `guidelines/{domain}.md` already exists, the Lead always includes it in Sprint Contracts regardless of trigger conditions.
-
-### Custom Domains
-
-Users can add their own guideline files directly to the project's `guidelines/` directory (e.g., `guidelines/data-pipeline.md`). The Lead detects any file in that directory and incorporates it into Sprint Contracts for tasks touching relevant code, even if the domain is not in the built-in detection table. The Lead uses its fallback judgment to match custom domains to tasks.
-
-### Domain Detection Table
-
-Match task file paths against directory patterns:
+**Domain Detection:**
 
 | Pattern | Domain |
 |---|---|
@@ -285,477 +83,220 @@ Match task file paths against directory patterns:
 | `docs/`, `content/`, `*.md` | writing |
 | `__tests__/`, `tests/`, `*.test.*`, `*.spec.*` | testing |
 
-**Fallback:** When file paths don't match any pattern, the Lead determines the domain from task content and file analysis.
+Fallback: Lead determines from task content.
 
-### Steps
+**Steps:**
+1. Collect file paths → match detection table
+2. Check `guidelines/{domain}.md` exists. All exist → skip to A-0
+3. **Draft:** Existing code → analyze patterns, generate from `templates/guidelines/{domain}.md`. New project → copy template as-is
+4. **User approval:** Present drafts, wait. Changes requested → edit and re-present
 
-**0-1: Domain Detection**
-Collect all file paths from all tasks in the plan. Match against the Domain Detection Table. Use Lead judgment as fallback for unmatched paths.
-
-**0-2: Guideline Existence Check**
-For each detected domain, check if `guidelines/{domain}.md` exists in the project.
-- All exist → skip to Phase A-0: Triage
-- Any missing → proceed to 0-3
-
-**0-3: Draft Generation**
-For each missing domain guideline:
-- **Existing code available:** Analyze current codebase to extract patterns (colors, spacing values, API response formats, naming conventions, test structure, etc.) and generate a populated draft based on the template from `templates/guidelines/{domain}.md`.
-- **New project (no existing code):** Copy the template from `templates/guidelines/{domain}.md` as-is for the user to fill in.
-
-Write drafts to the project's `guidelines/{domain}.md`.
-
-**0-4: User Approval Gate**
-Present generated guidelines to the user:
-> "Generated the following domain guidelines. Please review and edit as needed before I proceed."
-
-Show the content of each generated file. Wait for user response:
-- Approved → proceed to Phase A-0: Triage
-- Changes requested → apply edits and re-present
-
-### Applies to Both Modes
-
-Phase 0 runs before triage, so it applies to both Lite Mode and Full Mode.
+Applies to both Lite and Full Mode.
 
 ## Phase A-0: Triage
 
 **Announce:** "I'm using team-driven-development to execute this plan."
 
-Read the plan file and calculate the Quick Score from surface-level metrics before running the full analysis pipeline.
-
 ### Quick Score
 
-| Factor | Condition | Score |
-|--------|-----------|-------|
-| Task count | 1-2 tasks | 0 |
-| Task count | 3-4 tasks | +1 |
-| Task count | 5+ tasks | +2 |
-| Total files | ≤ 3 files across all tasks | 0 |
-| Total files | 4-6 files | +1 |
-| Total files | 7+ files | +2 |
-| Domain spread | Single directory/module | 0 |
-| Domain spread | Multiple directories | +1 |
-| Design keywords | "architecture", "migration", "security", "API design" in any task | +1 |
+| Factor | 0 | +1 | +2 |
+|--------|---|----|----|
+| Tasks | 1-2 | 3-4 | 5+ |
+| Files | ≤3 | 4-6 | 7+ |
+| Domains | single | multiple | — |
+| Design keywords | — | present | — |
+
+Design keywords: architecture, migration, security, API design.
 
 ### Mode Selection
 
-**If `--lite` flag provided:**
-- Quick Score ≤ 1 → proceed to Lite Mode directly (no proposal needed).
-- Quick Score > 1 → warn and proceed:
-  > "**Note:** This plan has Quick Score [N] ([N] tasks, [M] files, [details]) — typically suited for Full Mode. Proceeding with Lite Mode as requested."
-  Then proceed to Lite Mode.
+- `--lite` → Lite. If Score > 1: "Plan has Quick Score [N] — typically Full Mode. Proceeding Lite as requested."
+- `--full` → Full, skip proposal.
+- Auto: Score ≤ 1 → propose Lite. Score > 1 → Full.
 
-**If `--full` flag provided:**
-- Proceed directly to Phase A (Full Mode), skip proposal.
-
-**If no flag provided (auto-triage):**
-- Quick Score ≤ 1 → propose Lite Mode to user.
-- Quick Score > 1 → skip proposal, proceed directly to Phase A (Full Mode).
-
-### Proposal Message (auto-triage only)
-
-> **This plan has [N] tasks touching [M] files — lightweight enough for direct execution. I'll implement the tasks directly and have a Reviewer check the final diff. Use Lite Mode?**
->
-> - **Yes** — Direct execution + single review at the end
-> - **No** — Full team process (Workers, Sprint Contracts, per-task review)
-
-If the user accepts → proceed to Lite Mode.
-If the user declines → proceed to Phase A (Full Mode).
+**Proposal:** "This plan has [N] tasks touching [M] files — lightweight enough for direct execution. Use Lite Mode? **Yes** — direct execution + single review. **No** — full team process."
 
 ## Lite Mode
 
-When the user accepts Lite Mode, skip Phases A through C entirely. The Lead implements directly.
+Skip Phases A–C. Lead implements directly.
 
-### Lite Mode vs Full Mode
+| Aspect | Full | Lite |
+|--------|------|------|
+| Implementer | Worker subagent | Lead |
+| Isolation | Worktree per task | Current branch |
+| Sprint Contract | Per task | None (plan steps) |
+| Review | Per-task, profile-based | Single Reviewer, full diff |
+| Architect | When needed | None |
 
-| Aspect | Full Mode | Lite Mode |
-|--------|-----------|-----------|
-| Implementer | Worker subagent | Lead directly |
-| Isolation | Worktree per task | None (on current branch) |
-| Sprint Contract | Generated per task | None (Plan steps used directly) |
-| Review | Per-task, static/runtime/browser | Reviewer subagent reviews full diff once after all tasks |
-| Architect | Summoned when needed | None |
-| Effort Scoring | Performed | Skipped |
-| Completion Report | Detailed table | Brief summary (task list + commit list) |
+**Flow:**
+1. Execute tasks sequentially. TDD maintained. Follow existing `guidelines/{domain}.md`.
+2. Commit after each task.
+3. Dispatch Reviewer on full diff (base SHA → HEAD). Template: `./prompts/reviewer-prompt.md`.
+4. APPROVE → brief summary. REQUEST_CHANGES → fix, recommit, re-dispatch (max 2 rounds → escalate).
 
-### Lite Mode Flow
-
-1. **Execute tasks sequentially** — Lead implements each task directly, following Plan steps as-is. TDD is maintained. If `guidelines/{domain}.md` files exist for relevant domains, the Lead follows them as implementation constraints.
-2. **Commit after each task** — One commit per task for clean history.
-3. **Dispatch Reviewer** — After all tasks complete, dispatch a Reviewer subagent with the full diff (base SHA from before Task 1 to HEAD). Use prompt template: `./prompts/reviewer-prompt.md`. The Reviewer evaluates the combined changes, not individual tasks.
-4. **Handle review verdict:**
-   - APPROVE → output brief summary and finish.
-   - REQUEST_CHANGES → Lead fixes the issues, commits, and re-dispatches Reviewer (max 2 rounds).
-   - After 2 rounds without approval → escalate to human.
-
-### Lite Mode Completion Report
-
+**Completion Report:**
 ```markdown
 ## Completion Report (Lite Mode)
-
 ### Tasks Completed: N/N
-
 ### Commit Log
 - abc1234: Task 1 - [description]
-- def5678: Task 2 - [description]
-
 ### Review
-- Verdict: [APPROVE | REQUEST_CHANGES → fixed in round N]
-- Findings: N critical, N major, N minor, N recommendations
-
-### Review Detail (if findings exist)
-
+- Verdict: [APPROVE | REQUEST_CHANGES → fixed round N]
+- Findings: Nc, NM, Nm, Nr
+### Review Detail (if findings)
 | # | Severity | Finding | Disposition | Detail |
 |---|----------|---------|-------------|--------|
-| R-1 | major | Missing validation | fixed | Round 2 |
-| R-2 | minor | Variable naming | deferred | Style preference |
 ```
-
-### Lite Mode Red Flags
-
-See the Red Flags section for Lite Mode constraints.
 
 ## Phase A: Pre-delegate
 
 ### A-1: Read and Extract
-
-Read the plan file once. Extract ALL tasks with their full text, file paths, test commands, and acceptance criteria. Never make subagents read the plan file.
+Read plan once. Extract ALL tasks with full text, file paths, test commands, criteria. Never make subagents read the plan.
 
 ### A-2: Dependency Analysis
-
-Analyze dependencies dynamically from the plan content:
-
-1. **File-based:** Task B creates a file that Task C imports → B before C
-2. **Type-based:** Task A defines a type that Task B uses → A before B
-3. **Logical:** Task A sets up infrastructure that Task B relies on → A before B
-4. **Independent:** Tasks touch different directories with no shared imports → parallel candidate
-
-Build an execution order:
-```
-Independent tasks: [Task 1, Task 3] → can parallelize
-Sequential chain:  Task 2 → Task 4 → Task 5
-Independent:       Task 6
-```
+- **File-based:** B creates file C imports → B before C
+- **Type-based:** A defines type B uses → A before B
+- **Logical:** A sets up infra B needs → A before B
+- **Independent:** Different directories, no shared imports → parallel candidate
 
 ### A-3: Effort Scoring
 
-Score each task for complexity to determine model selection:
+| Factor | +1 when |
+|--------|---------|
+| Files | 4+ modified |
+| Directory | core/, shared/, security/, auth/ |
+| Keywords | architecture, migration, security, design, refactor |
+| Cross-cutting | Touches code other tasks also touch |
+| New subsystem | Creating new module/package |
 
-| Factor | Condition | Score |
-|--------|-----------|-------|
-| File count | 4+ files modified | +1 |
-| Directory | core/, shared/, security/, auth/ | +1 |
-| Keywords | architecture, migration, security, design, refactor | +1 |
-| Cross-cutting | Task touches code other tasks also touch | +1 |
-| New subsystem | Creating new module/package from scratch | +1 |
+Score 0-1 → haiku. Score 2 → sonnet. Score 3+ → opus.
 
-**Threshold:**
-- Score 0-1 → cheap/fast model (mechanical task)
-- Score 2 → standard model (integration task)
-- Score 3+ → most capable model (architecture/design task)
+### A-4: Reviewer Profile
 
-### A-4: Reviewer Profile Selection
-
-Automatically select review depth based on task characteristics:
-
-| Task characteristics | Profile | What happens |
-|---------------------|---------|-------------|
-| 1-2 files, logic only, no UI | `static` | Lead reads diff + checks Sprint Contract |
-| Tests included, multi-file, integration | `runtime` | Reviewer agent runs tests, checks integration |
-| UI components, CSS, visual changes | `browser` | Reviewer agent + browser verification |
+| Characteristics | Profile | Action |
+|----------------|---------|--------|
+| 1-2 files, logic only, no UI | `static` | Lead reads diff |
+| Tests, multi-file, integration | `runtime` | Reviewer agent |
+| UI, CSS, visual | `browser` | Reviewer + browser |
 
 ### A-5: Sprint Contract Generation
 
-For each task, generate a Sprint Contract:
-
-```markdown
-## Sprint Contract: Task N - [Task Name]
-
-### Success Criteria
-- [ ] [Specific, verifiable condition from plan]
-- [ ] [Tests pass: `exact test command`]
-
-### Non-Goals
-- [What this task explicitly does NOT do]
-- [Boundaries with adjacent tasks]
-
-### Reviewer Profile: static | runtime | browser
-
-### Guidelines
-- [domain]: guidelines/[domain].md
-<!-- One line per relevant domain. Omit if no guidelines exist for this task's domains. -->
-
-### Runtime Validation (if runtime/browser)
-- `npm test -- --filter=relevant-tests`
-- `npm run typecheck`
-
-### Browser Validation (if browser)
-- [ ] [Specific UI flow to verify]
-- [ ] [Visual state to confirm]
-
-### Effort Score: N
-### Model: cheap | standard | capable
-```
+Generate per task using `templates/sprint-contract-template.md` as structure. Lead fills task-specific sections only. **Incorporate all applicable Domain Guidelines into acceptance criteria** — Reviewers do not receive Guidelines separately.
 
 ### A-5.5: Contract QA
 
-Before dispatching any Worker, the Lead validates each Sprint Contract against this checklist:
+Validate each contract:
+1. Success Criteria specific and verifiable (NG: "Code works" / OK: "GET /api/users returns 200 with JSON array")
+2. Test commands include file paths/filters
+3. At least one Non-Goal defined
+4. Profile matches task characteristics
+5. Dependencies stated as preconditions
 
-```
-Contract QA Checklist:
-1. [ ] All Success Criteria are specific and verifiable
-       NG: "Code works correctly"
-       OK: "GET /api/users returns 200 with JSON array"
-2. [ ] Test commands include file paths or filters
-3. [ ] At least one Non-Goal is defined
-4. [ ] Reviewer Profile matches task characteristics
-5. [ ] Dependencies on incomplete tasks are stated as preconditions
-```
-
-**If any item fails:** Lead fixes the Contract directly and re-checks once. If still failing after one fix attempt, the task definition is ambiguous — escalate to human.
+Fail → fix once → still failing → escalate.
 
 ### A-6: Team Composition
 
-Based on the analysis, determine the team:
-
+Report before Phase B:
 ```
-Team for this plan:
-- Lead: orchestration (this session)
-- Workers: 1 (sequential) or 2 (if independent tasks exist)
-- Reviewer: static for Tasks 1,3,6 / runtime for Tasks 2,4 / browser for Task 5
-- Architect: summoned for Task 2 (defines shared API)
+Team: Lead (orchestration), Workers: N, Reviewer: [profiles], Architect: [tasks if any]
 ```
-
-Report the team composition to the human before starting Phase B.
 
 ## Phase B: Delegate
 
-Execute tasks in dependency order. For independent tasks, dispatch Workers in parallel.
+Execute in dependency order. Parallelize independent tasks (up to 2 Workers, each in own worktree, never sharing files). Cherry-pick in plan order.
 
 ### B-1: Architect Review (design tasks only)
 
-If the task has effort score 3+ AND involves design decisions:
-
-1. Dispatch Architect subagent with:
-   - Full task text
-   - Codebase context (relevant existing code)
-   - Question: "What approach should the Worker take?"
-2. Architect returns a **design brief** (approach, interfaces, constraints)
-3. Attach design brief to Worker's prompt
-
-Use prompt template: `./prompts/architect-prompt.md`
+Effort 3+ AND design decisions → dispatch Architect with task text, codebase context, related tasks, questions. Receives design brief → attach to Worker. Template: `./prompts/architect-prompt.md`
 
 ### B-2: Dispatch Worker
 
-Dispatch Worker subagent with:
-- Full task text (from plan, not file reference)
-- Sprint Contract
-- Domain Guidelines content (read from files listed in Sprint Contract's Guidelines section)
-- Design brief (if Architect was consulted)
-- Codebase context (relevant files, patterns)
-- Model selection based on effort score
+Send: full task text, Sprint Contract, Domain Guidelines content (from Contract's Guidelines section), design brief (if any), codebase context. Model per effort score. Worktree isolation.
 
-**Isolation:** Worker operates in a git worktree. Changes stay isolated until APPROVE.
+**Codebase Context rules:**
+- Full content: only files Worker must modify
+- Reference files: path + one-line description (Worker reads on demand via Read tool)
+- Budget: ≤ 2 KB pre-sent content (excluding modification targets)
 
-Use prompt template: `./prompts/worker-prompt.md`
+Template: `./prompts/worker-prompt.md`
 
 ### B-3: Handle Worker Status
 
-Workers report one of four statuses:
+| Status | Action |
+|--------|--------|
+| DONE | Proceed to review |
+| DONE_WITH_CONCERNS | Address correctness/scope concerns before review. Note observational concerns, proceed |
+| NEEDS_CONTEXT | Provide info, re-dispatch |
+| BLOCKED | Context problem → more context. Complexity → capable model. Too large → subtasks. Plan wrong → escalate |
 
-**DONE:** Proceed to review.
-
-**DONE_WITH_CONCERNS:** Read concerns before review. Address correctness/scope concerns before proceeding. Note observational concerns and proceed.
-
-**NEEDS_CONTEXT:** Provide missing context and re-dispatch.
-
-**BLOCKED:** Assess the blocker:
-1. Context problem → provide more context, re-dispatch
-2. Complexity problem → re-dispatch with more capable model
-3. Task too large → break into subtasks
-4. Plan is wrong → escalate to human
-
-**Never** force retry without changes. If the Worker said it's stuck, something needs to change.
+Never force retry without changes.
 
 ### B-4: Review
 
-Execute review based on the Sprint Contract's reviewer_profile:
+**static (Lead):** Read diff → evidence table per criterion (MET/NOT_MET + evidence) → verify non-goals → L-prefixed findings in Ledger → verdict.
 
-**static (Lead reviews directly):**
-1. Read the Worker's diff
-2. Check each Sprint Contract criterion — record in Ledger using the evidence table format:
+**runtime/browser (Reviewer agent):** Dispatch with diff + Sprint Contract. Reviewer runs validation + checks integration (+ browser items for browser profile). Template: `./prompts/reviewer-prompt.md`
 
-| # | Criterion | Status | Evidence |
-|---|-----------|--------|----------|
-| 1 | [criterion] | MET/NOT_MET | [what you observed] |
+**Ledger integration (all profiles):** Transfer W-prefixed and R/L-prefixed findings → record dispositions → verify critical/major all `fixed`.
 
-Coverage: N/N criteria evaluated
+### Verdict Rules
 
-3. Verify non-goals were respected
-4. Record findings with L-prefixed IDs (L-1, L-2, ...) in the Ledger
-5. Verdict: APPROVE or REQUEST_CHANGES with specific issues
-
-**runtime (Reviewer agent):**
-1. Dispatch Reviewer subagent with diff + Sprint Contract + Domain Guidelines (if any)
-2. Reviewer runs validation commands from Sprint Contract
-3. Reviewer checks integration with existing code
-4. Verdict: APPROVE or REQUEST_CHANGES
-
-**browser (Reviewer agent + browser):**
-1. Dispatch Reviewer subagent with diff + Sprint Contract + Domain Guidelines (if any)
-2. Reviewer runs tests AND browser validation items
-3. Reviewer verifies UI flows from Sprint Contract
-4. Verdict: APPROVE or REQUEST_CHANGES
-
-**All profiles — Ledger integration:**
-
-After review (static, runtime, or browser), the Lead:
-1. Transfers Worker self-review findings (W-prefixed) into the Ledger
-2. Transfers Reviewer findings (R-prefixed) or Lead findings (L-prefixed) into the Ledger
-3. Records disposition for each finding
-4. Verifies critical/major findings are all `fixed` before proceeding
-
-Use prompt template: `./prompts/reviewer-prompt.md`
-
-### Review Verdict Rules
-
-| Severity | Impact | Definition |
-|----------|--------|-----------|
-| **critical** | REQUEST_CHANGES | Security vulnerabilities, data loss risk, production failure |
-| **major** | REQUEST_CHANGES | Spec mismatch, test failure, existing feature breakage |
-| **minor** | No impact (APPROVE) | Naming, comments, style |
-| **recommendation** | No impact (APPROVE) | Best practice suggestions |
-
-**Only critical and major findings block approval.** Minor and recommendations are noted but don't block.
+| Severity | Impact |
+|----------|--------|
+| critical | REQUEST_CHANGES — security, data loss, production failure |
+| major | REQUEST_CHANGES — spec mismatch, test failure, feature breakage |
+| minor/recommendation | No impact (APPROVE) |
 
 ### B-5: Fix Loop (max 3 rounds)
-
-If REQUEST_CHANGES:
-1. Send specific issues to Worker
-2. Worker fixes in same worktree
-3. Re-review (same profile)
-4. Repeat until APPROVE or 3 rounds exhausted
-5. After 3 rounds: escalate to human
+REQUEST_CHANGES → issues to Worker → fix in same worktree → re-review → APPROVE or 3 rounds → escalate.
 
 ### B-6: Cherry-pick to Main
 
-On APPROVE:
 ```bash
-git cherry-pick --no-commit <worktree-commit-hash>
+git cherry-pick --no-commit <hash>
 git commit -m "<task description>"
 ```
 
-**If cherry-pick conflicts:**
+**Conflicts:** Lead resolves. Non-trivial → re-dispatch Reviewer (outside 3-round limit). Cannot resolve → escalate. Record in Ledger.
 
-1. **Lead resolves directly.** Read conflict markers. Resolve using both the task's intent and existing main state. Adjacent-line conflicts from parallel tasks are expected and typically straightforward.
-2. **If resolution is non-trivial** (semantic conflict, not just adjacency): re-dispatch Reviewer on the resolved result. This additional review round does not count toward the 3-round limit.
-3. **If Lead cannot resolve:** Escalate to human with conflict details, both sides' intent, and recommended resolution.
-4. **Record in Ledger:** Note "Cherry-pick conflict resolved by Lead" or "Re-reviewed after conflict resolution" in the task's Ledger.
-
-Report progress:
-```
-Task N/Total complete — "[task name]"
-```
-
-### Parallel Execution
-
-When dependency analysis identifies independent tasks:
-- Dispatch up to 2 Workers simultaneously (each in own worktree)
-- Review each independently when done
-- Cherry-pick in plan order (not completion order) for clean history
-- **Never** parallelize tasks that touch the same files
+**Progress:** "Task N/Total complete — [task name]"
 
 ## Phase C: Post-delegate
 
 ### C-1: Collect Results
-
-Gather all commit hashes, file changes, and test results.
+Gather commit hashes, file changes, test results.
 
 ### C-2: Completion Report
-
 ```markdown
 ## Completion Report
-
 ### Tasks Completed: N/N
-
 | Task | Status | Files | Profile | Rounds | Findings |
 |------|--------|-------|---------|--------|----------|
-| 1    | Done   | 3     | static  | 1      | 0 critical, 0 major, 1 minor |
-| 2    | Done   | 7     | runtime | 2      | 0 critical, 1 major, 2 minor |
-
-### Review Detail
-
-Include this section for each task that has findings. Omit for tasks with zero findings.
-
-#### Task N - [Name]
+### Review Detail (per task with findings)
 | # | Source | Severity | Finding | Disposition | Detail |
 |---|--------|----------|---------|-------------|--------|
-| W-1 | self-review | minor | Unused import | fixed | — |
-| R-1 | reviewer | major | Missing null check | fixed | Round 2, commit def567 |
-| R-2 | reviewer | minor | Variable naming | deferred | Style preference, no functional impact |
-
 ### Summary
-- Total files changed: N
-- Total commits: N
-- Architect consulted: Tasks [2, 5]
-- Review rounds: avg N per task
-- Findings: N critical, N major, N minor, N recommendations
-- Deferred items: N (see Review Detail for reasons)
-
+- Files changed / Commits / Architect consulted / Avg rounds / Findings / Deferred
 ### Commit Log
-- abc1234: Task 1 - [description]
-- def5678: Task 2 - [description]
+- hash: Task N - [description]
 ```
 
 ### C-3: Verify
-
-- All tasks from plan are complete
-- All tests pass on main branch
-- No uncommitted changes remain
+All plan tasks complete. All tests pass on main. No uncommitted changes.
 
 ## Red Flags
 
-**Never (Full Mode):**
-- Start implementation on main branch without explicit user consent
-- Skip review for any task (even "simple" ones)
-- Let Lead write implementation code (Lead orchestrates, Workers implement)
-- Dispatch Workers for tasks with unresolved dependencies
-- Parallelize tasks that share files
-- Ignore Worker escalations (BLOCKED/NEEDS_CONTEXT)
-- Accept REQUEST_CHANGES and move on without fixes
-- Skip the Sprint Contract (even for small tasks)
-- Let the Architect implement (Architect advises, Workers implement)
-- Cherry-pick before review is complete
+**Never (Full Mode):** Implement on main without consent. Skip review. Let Lead write code. Dispatch with unresolved dependencies. Parallelize shared-file tasks. Ignore BLOCKED/NEEDS_CONTEXT. Accept REQUEST_CHANGES without fixes. Skip Sprint Contracts. Let Architect implement. Cherry-pick before review.
 
-**Never (Lite Mode):**
-- Skip the Reviewer dispatch (review is always mandatory)
-- Exceed 2 fix rounds without escalating to human
-- Use Lite Mode if the user declined the Triage proposal
+**Never (Lite Mode):** Skip Reviewer. Exceed 2 rounds without escalating. Use Lite if user declined proposal.
 
-**If Worker asks questions:** Answer completely before letting them proceed.
-
-**If review finds issues:** Worker fixes, review repeats. No shortcuts.
-
-**If Architect and Worker disagree:** Lead mediates based on plan requirements.
-
-## Model Selection Summary
-
-| Role | Default | Override |
-|------|---------|---------|
-| Lead | Current session | — |
-| Worker (effort 0-1) | haiku / cheap | — |
-| Worker (effort 2) | sonnet / standard | — |
-| Worker (effort 3+) | opus / capable | — |
-| Reviewer | sonnet / standard | — |
-| Architect | opus / capable | — |
+**Worker questions:** Answer completely first. **Review issues:** Fix and re-review. **Architect/Worker disagree:** Lead mediates per plan.
 
 ## Integration
 
-**Works with:**
-- **quick-plan** — Generates spec + plan for this skill to execute (lightweight alternative to superpowers brainstorming + writing-plans)
-- **superpowers:writing-plans** — Creates the plans this skill executes
-- **superpowers:using-git-worktrees** — Workers use worktree isolation
+- **quick-plan** — generates spec + plan for this skill
+- **superpowers:writing-plans** — creates plans this skill executes
+- **superpowers:using-git-worktrees** — Worker worktree isolation
 - **superpowers:test-driven-development** — Workers follow TDD
-- **superpowers:finishing-a-development-branch** — After all tasks complete
-
-**Alternative:**
-- **superpowers:subagent-driven-development** — Simpler single-role execution without team composition
+- **superpowers:finishing-a-development-branch** — after completion
+- Alternative: **superpowers:subagent-driven-development** — simpler single-role execution
