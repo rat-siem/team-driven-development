@@ -124,13 +124,28 @@ digraph process {
     subgraph cluster_phase_b {
         label="Phase B: Delegate (Full Mode, per task)";
         "B1: Architect review?" [shape=diamond];
-        "B2: Dispatch Worker" [shape=box];
-        "B3: Review" [shape=box];
-        "B4: Cherry-pick to main" [shape=box];
+        "B1a: Dispatch Architect" [shape=box];
+        "B2: Dispatch Worker (worktree)" [shape=box];
+        "B3: Worker reports status" [shape=box];
+        "B4: Review (static/runtime/browser)" [shape=diamond];
+        "B4a: Lead reviews diff" [shape=box];
+        "B4b: Dispatch Reviewer agent" [shape=box];
+        "B5: Approved?" [shape=diamond];
+        "B5a: Worker fixes (max 3 rounds)" [shape=box];
+        "B6: Cherry-pick to main" [shape=box];
 
-        "B1: Architect review?" -> "B2: Dispatch Worker";
-        "B2: Dispatch Worker" -> "B3: Review";
-        "B3: Review" -> "B4: Cherry-pick to main";
+        "B1: Architect review?" -> "B1a: Dispatch Architect" [label="yes"];
+        "B1: Architect review?" -> "B2: Dispatch Worker (worktree)" [label="no"];
+        "B1a: Dispatch Architect" -> "B2: Dispatch Worker (worktree)";
+        "B2: Dispatch Worker (worktree)" -> "B3: Worker reports status";
+        "B3: Worker reports status" -> "B4: Review (static/runtime/browser)";
+        "B4: Review (static/runtime/browser)" -> "B4a: Lead reviews diff" [label="static"];
+        "B4: Review (static/runtime/browser)" -> "B4b: Dispatch Reviewer agent" [label="runtime/browser"];
+        "B4a: Lead reviews diff" -> "B5: Approved?";
+        "B4b: Dispatch Reviewer agent" -> "B5: Approved?";
+        "B5: Approved?" -> "B6: Cherry-pick to main" [label="yes"];
+        "B5: Approved?" -> "B5a: Worker fixes (max 3 rounds)" [label="no"];
+        "B5a: Worker fixes (max 3 rounds)" -> "B4: Review (static/runtime/browser)";
     }
 
     subgraph cluster_phase_c {
@@ -150,7 +165,7 @@ digraph process {
 
 ## Phase A-0: Triage
 
-**Announce:** "I'm using team-driven-development to execute this plan as a team."
+**Announce:** "I'm using team-driven-development to execute this plan."
 
 Read the plan file and calculate the Quick Score from surface-level metrics before running the full analysis pipeline.
 
@@ -224,10 +239,7 @@ When the user accepts Lite Mode, skip Phases A through C entirely. The Lead impl
 
 ### Lite Mode Red Flags
 
-**Never:**
-- Skip the Reviewer dispatch (even in Lite Mode, review is mandatory)
-- Exceed 2 fix rounds (escalate to human instead)
-- Use Lite Mode if the user declined it
+See the Red Flags section for Lite Mode constraints.
 
 ## Phase A: Pre-delegate
 
@@ -488,10 +500,6 @@ Gather all commit hashes, file changes, and test results.
 - Skip the Reviewer dispatch (review is always mandatory)
 - Exceed 2 fix rounds without escalating to human
 - Use Lite Mode if the user declined the Triage proposal
-
-**Never (both modes):**
-- Skip review entirely
-- Ignore REQUEST_CHANGES and move on without fixes
 
 **If Worker asks questions:** Answer completely before letting them proceed.
 
