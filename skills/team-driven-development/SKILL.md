@@ -16,32 +16,28 @@ Execute implementation plans by orchestrating a team of specialized subagents. T
 ```dot
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
-    "3+ tasks or complex?" [shape=diamond];
-    "Need role specialization?" [shape=diamond];
     "team-driven-development" [shape=box];
-    "subagent-driven-development" [shape=box];
     "Manual execution" [shape=box];
 
-    "Have implementation plan?" -> "3+ tasks or complex?" [label="yes"];
+    "Have implementation plan?" -> "team-driven-development" [label="yes"];
     "Have implementation plan?" -> "Manual execution" [label="no"];
-    "3+ tasks or complex?" -> "Need role specialization?" [label="yes"];
-    "3+ tasks or complex?" -> "subagent-driven-development" [label="no - simple tasks"];
-    "Need role specialization?" -> "team-driven-development" [label="yes"];
-    "Need role specialization?" -> "subagent-driven-development" [label="no - uniform tasks"];
 }
 ```
 
 **Use when:**
+- You have an implementation plan to execute
+- Simple plans automatically trigger a Lite Mode suggestion — no need to avoid this skill for small tasks
+
+**Lite Mode is suggested when:**
+- Plan has 1-2 tasks with ≤ 3 files total
+- No design keywords or multi-domain spread
+
+**Full Mode is used when:**
 - Plan has 3+ tasks with varying complexity
 - Tasks span multiple domains (frontend + backend, infra + app, etc.)
 - Design decisions are needed before or during implementation
 - You want parallel execution of independent tasks
 - Quality gates need to vary by task type (static review vs browser testing)
-
-**Don't use when:**
-- All tasks are uniform and mechanical (use subagent-driven-development instead)
-- Tasks are tightly coupled and can't be isolated
-- Plan has only 1-2 simple tasks (just do them directly)
 
 ## The Team
 
