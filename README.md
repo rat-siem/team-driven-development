@@ -31,6 +31,29 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 - **Reviewer** — Validates completed work against a Sprint Contract with evidence-based checklist. Three profiles: `static`, `runtime`, `browser`.
 - **Architect** — Summoned only for tasks requiring design decisions. Produces a design brief for the Worker.
 
+## Why Use This
+
+- **The person who writes the code doesn't review it.** Worker and Reviewer are separate agents with separate context. This eliminates self-review bias — the most common failure mode when a single agent implements and validates its own work.
+- **Success criteria are locked before work begins.** Sprint Contracts define what "done" means before a single line is code is written. No scope drift, no moving goalposts, no "looks good to me" reviews.
+- **Every review finding is tracked to resolution.** The Review Ledger records each finding across fix rounds with a disposition (fixed / deferred / wont-fix). Nothing gets silently dropped.
+- **Main branch stays safe.** Workers operate in isolated git worktrees. Changes only reach main after review approval and cherry-pick — a failed task never pollutes the working tree.
+- **Token cost scales with task complexity.** Effort Scoring assigns cheaper models (Haiku) to simple tasks and reserves expensive models (Opus) for complex ones. You don't pay Opus prices to rename a variable.
+- **Independent tasks run in parallel.** Dynamic dependency analysis identifies tasks that can run simultaneously, dispatching multiple Workers in separate worktrees.
+
+## When NOT to Use This
+
+This plugin adds orchestration overhead. That overhead pays for itself on complex work, but costs more than it saves on simple tasks.
+
+**Use a simpler approach when:**
+
+- **Single-file changes** — A one-file bugfix or config tweak doesn't need a team, a Sprint Contract, or a worktree.
+- **Quick prototyping / exploration** — When you're experimenting and expect to throw code away, the contract-and-review cycle slows you down for no benefit.
+- **Tasks under ~3 steps** — If the plan has 1-2 straightforward tasks, the triage overhead (even Lite Mode) exceeds the value of role separation.
+- **No tests or validation possible** — Sprint Contracts rely on verifiable success criteria. If the task is purely subjective (copy editing, visual polish), the review process has little to verify against.
+- **You need tight interactive control** — The team workflow is semi-autonomous by design. If you want to approve every line as it's written, direct implementation is faster.
+
+**Rule of thumb:** If you can describe the entire change in one sentence and it touches ≤ 2 files, skip this plugin.
+
 ## Key Features
 
 - **Quick Plan** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Use `/quick-plan` or let team-driven-development suggest it when no plan exists.
