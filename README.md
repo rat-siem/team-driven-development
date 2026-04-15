@@ -34,6 +34,7 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 ## Key Features
 
 - **Quick Plan** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Use `/quick-plan` or let team-driven-development suggest it when no plan exists.
+- **Solo Review** — Standalone code review using the Reviewer agent. Auto-detects review target (staged, uncommitted, or branch diff), adapts criteria (Sprint Contract → plan-derived → generic), and produces structured verdicts. Use `/solo-review` for on-demand review without the full team workflow.
 - **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process
 - **Dynamic team composition** — Roles assigned per task based on complexity and type
 - **Sprint Contracts** — Success criteria, non-goals, and review profile defined before work begins
@@ -126,6 +127,26 @@ This plugin works best with [Superpowers](https://github.com/obra/superpowers) b
 ```
 
 The `quick-plan` skill generates a spec and plan with minimal dialogue — no superpowers dependency needed. When the plan is ready, it offers to hand off directly to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-plan automatically.
+
+### Solo Review (standalone)
+
+```
+/solo-review
+```
+
+Review your current changes without running the full team workflow. The skill auto-detects what to review and which criteria to use:
+
+- **Has Sprint Contract?** → Contract-based review (identical to team-driven-development)
+- **Has plan file?** → Derives criteria from matching plan tasks
+- **Neither?** → Generic code review (security, correctness, test coverage)
+
+Override options:
+```
+/solo-review HEAD~3..HEAD              # specific commit range
+/solo-review src/api/                  # specific path
+/solo-review --profile runtime         # force runtime validation
+/solo-review --contract path/to/contract.md  # use specific Sprint Contract
+```
 
 ### With Superpowers (thorough)
 
