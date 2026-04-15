@@ -24,6 +24,15 @@ Agent tool:
 
     [Paste the Architect's design brief, or omit this section]
 
+    ## Domain Guidelines (if applicable)
+
+    [Paste the content of each guidelines/{domain}.md file referenced in the
+     Sprint Contract's Guidelines section. Omit this section if no guidelines apply.]
+
+    These guidelines are project-approved constraints. Follow them for all
+    implementation decisions in their respective domains (colors, spacing,
+    API patterns, naming, test structure, etc.).
+
     ## Codebase Context
 
     [Relevant existing code, patterns, imports that the Worker needs to know.
@@ -84,6 +93,7 @@ Agent tool:
     - Did I avoid overbuilding (YAGNI)?
     - Did I only build what was requested?
     - Did I respect the Non-Goals in the Sprint Contract?
+    - Did I follow the Domain Guidelines (if provided)?
 
     **Testing:**
     - Do tests verify behavior (not just mock it)?
