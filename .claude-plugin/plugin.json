@@ -16,6 +16,7 @@
     "parallel",
     "review"
   ],
-  "skills": "./skills/",
-  "agents": "./agents/"
+  "skills": [
+    "./skills"
+  ]
 }
