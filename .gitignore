@@ -1,0 +1,4 @@
+# Claude Code session/state data
+.claude/sessions/
+.claude/state/
+.claude/worktrees/
