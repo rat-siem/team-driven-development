@@ -505,6 +505,13 @@ git cherry-pick --no-commit <worktree-commit-hash>
 git commit -m "<task description>"
 ```
 
+**If cherry-pick conflicts:**
+
+1. **Lead resolves directly.** Read conflict markers. Resolve using both the task's intent and existing main state. Adjacent-line conflicts from parallel tasks are expected and typically straightforward.
+2. **If resolution is non-trivial** (semantic conflict, not just adjacency): re-dispatch Reviewer on the resolved result. This additional review round does not count toward the 3-round limit.
+3. **If Lead cannot resolve:** Escalate to human with conflict details, both sides' intent, and recommended resolution.
+4. **Record in Ledger:** Note "Cherry-pick conflict resolved by Lead" or "Re-reviewed after conflict resolution" in the task's Ledger.
+
 Report progress:
 ```
 Task N/Total complete — "[task name]"
