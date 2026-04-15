@@ -64,6 +64,16 @@
 
 ## インストール
 
+### Claude Code 内から（推奨）
+
+Claude Code セッション内で `/plugin` スラッシュコマンドを使用します：
+
+```
+/plugin install team-driven-development@team-driven-dev
+```
+
+### ターミナルから
+
 ```bash
 # 1. マーケットプレイス登録
 claude plugin marketplace add https://github.com/rat-siem/team-driven-development
@@ -76,6 +86,20 @@ claude plugin install team-driven-development@team-driven-dev
 
 ```bash
 claude plugin add /path/to/team-driven-development
+```
+
+## アップデート
+
+最新バージョンに更新するには：
+
+```
+/plugin update team-driven-development
+```
+
+またはターミナルから：
+
+```bash
+claude plugin update team-driven-development
 ```
 
 ## 使い方

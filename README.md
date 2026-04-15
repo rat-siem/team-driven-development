@@ -65,6 +65,16 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 
 ## Installation
 
+### From Claude Code (recommended)
+
+Use the `/plugin` slash command inside a Claude Code session:
+
+```
+/plugin install team-driven-development@team-driven-dev
+```
+
+### From Terminal
+
 ```bash
 # 1. Register marketplace
 claude plugin marketplace add https://github.com/rat-siem/team-driven-development
@@ -77,6 +87,20 @@ claude plugin install team-driven-development@team-driven-dev
 
 ```bash
 claude plugin add /path/to/team-driven-development
+```
+
+## Updating
+
+To update to the latest version:
+
+```
+/plugin update team-driven-development
+```
+
+Or from the terminal:
+
+```bash
+claude plugin update team-driven-development
 ```
 
 ## Usage
