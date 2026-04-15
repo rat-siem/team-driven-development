@@ -28,6 +28,17 @@ digraph when_to_use {
 - You have an implementation plan to execute
 - Simple plans automatically trigger a Lite Mode suggestion — no need to avoid this skill for small tasks
 
+## Arguments
+
+- No arguments → auto-triage (Quick Score determines mode proposal)
+- `--lite` → skip triage, use Lite Mode directly. If Quick Score > 1, warn but proceed.
+- `--full` → skip triage, use Full Mode directly.
+
+Examples:
+- `/team-driven-development` — auto-triage
+- `/team-driven-development --lite` — force Lite Mode
+- `/team-driven-development --full` — force Full Mode
+
 **No plan available:**
 - If invoked without an implementation plan, suggest using the `quick-plan` skill first
 - Message: "No implementation plan found. Use quick-plan to generate a spec and plan first?"
@@ -117,6 +128,10 @@ digraph process {
     rankdir=TB;
 
     "Phase A-0: Triage" [shape=box style=filled fillcolor=lightyellow];
+    "Explicit mode flag?" [shape=diamond];
+    "Flag = --lite" [shape=diamond];
+    "Quick Score > 1?" [shape=diamond];
+    "Warn and proceed Lite" [shape=box];
     "Quick Score <= 1?" [shape=diamond];
     "User accepts Lite?" [shape=diamond];
     "Lite Mode" [shape=box style=filled fillcolor=palegreen];
@@ -132,7 +147,14 @@ digraph process {
         "A0: Read plan, count tasks/files/domains" -> "A0: Calculate Quick Score";
     }
 
-    "A0: Calculate Quick Score" -> "Quick Score <= 1?";
+    "A0: Calculate Quick Score" -> "Explicit mode flag?";
+    "Explicit mode flag?" -> "Flag = --lite" [label="yes"];
+    "Explicit mode flag?" -> "Quick Score <= 1?" [label="no"];
+    "Flag = --lite" -> "Quick Score > 1?" [label="--lite"];
+    "Flag = --lite" -> "Phase A: Pre-delegate" [label="--full"];
+    "Quick Score > 1?" -> "Warn and proceed Lite" [label="yes"];
+    "Quick Score > 1?" -> "Lite Mode" [label="no"];
+    "Warn and proceed Lite" -> "Lite Mode";
     "Quick Score <= 1?" -> "User accepts Lite?" [label="yes"];
     "Quick Score <= 1?" -> "Phase A: Pre-delegate" [label="no"];
     "User accepts Lite?" -> "Lite Mode" [label="yes"];
@@ -236,9 +258,22 @@ Read the plan file and calculate the Quick Score from surface-level metrics befo
 | Domain spread | Multiple directories | +1 |
 | Design keywords | "architecture", "migration", "security", "API design" in any task | +1 |
 
-**Quick Score ≤ 1 → propose Lite Mode to user.**
+### Mode Selection
 
-### Proposal Message
+**If `--lite` flag provided:**
+- Quick Score ≤ 1 → proceed to Lite Mode directly (no proposal needed).
+- Quick Score > 1 → warn and proceed:
+  > "**Note:** This plan has Quick Score [N] ([N] tasks, [M] files, [details]) — typically suited for Full Mode. Proceeding with Lite Mode as requested."
+  Then proceed to Lite Mode.
+
+**If `--full` flag provided:**
+- Proceed directly to Phase A (Full Mode), skip proposal.
+
+**If no flag provided (auto-triage):**
+- Quick Score ≤ 1 → propose Lite Mode to user.
+- Quick Score > 1 → skip proposal, proceed directly to Phase A (Full Mode).
+
+### Proposal Message (auto-triage only)
 
 > **This plan has [N] tasks touching [M] files — lightweight enough for direct execution. I'll implement the tasks directly and have a Reviewer check the final diff. Use Lite Mode?**
 >
@@ -247,7 +282,6 @@ Read the plan file and calculate the Quick Score from surface-level metrics befo
 
 If the user accepts → proceed to Lite Mode.
 If the user declines → proceed to Phase A (Full Mode).
-If Quick Score > 1 → skip proposal, proceed directly to Phase A (Full Mode).
 
 ## Lite Mode
 
