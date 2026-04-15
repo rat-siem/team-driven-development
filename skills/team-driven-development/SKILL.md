@@ -181,6 +181,54 @@ If the user accepts → proceed to Lite Mode.
 If the user declines → proceed to Phase A (Full Mode).
 If Quick Score > 1 → skip proposal, proceed directly to Phase A (Full Mode).
 
+## Lite Mode
+
+When the user accepts Lite Mode, skip Phases A through C entirely. The Lead implements directly.
+
+### Lite Mode vs Full Mode
+
+| Aspect | Full Mode | Lite Mode |
+|--------|-----------|-----------|
+| Implementer | Worker subagent | Lead directly |
+| Isolation | Worktree per task | None (on current branch) |
+| Sprint Contract | Generated per task | None (Plan steps used directly) |
+| Review | Per-task, static/runtime/browser | Reviewer subagent reviews full diff once after all tasks |
+| Architect | Summoned when needed | None |
+| Effort Scoring | Performed | Skipped |
+| Completion Report | Detailed table | Brief summary (task list + commit list) |
+
+### Lite Mode Flow
+
+1. **Execute tasks sequentially** — Lead implements each task directly, following Plan steps as-is. TDD is maintained.
+2. **Commit after each task** — One commit per task for clean history.
+3. **Dispatch Reviewer** — After all tasks complete, dispatch a Reviewer subagent with the full diff (base SHA from before Task 1 to HEAD). Use prompt template: `./prompts/reviewer-prompt.md`. The Reviewer evaluates the combined changes, not individual tasks.
+4. **Handle review verdict:**
+   - APPROVE → output brief summary and finish.
+   - REQUEST_CHANGES → Lead fixes the issues, commits, and re-dispatches Reviewer (max 2 rounds).
+   - After 2 rounds without approval → escalate to human.
+
+### Lite Mode Completion Report
+
+```markdown
+## Completion Report (Lite Mode)
+
+### Tasks Completed: N/N
+
+### Commit Log
+- abc1234: Task 1 - [description]
+- def5678: Task 2 - [description]
+
+### Review
+- Reviewer: [APPROVE | REQUEST_CHANGES → fixed in round N]
+```
+
+### Lite Mode Red Flags
+
+**Never:**
+- Skip the Reviewer dispatch (even in Lite Mode, review is mandatory)
+- Exceed 2 fix rounds (escalate to human instead)
+- Use Lite Mode if the user declined it
+
 ## Phase A: Pre-delegate
 
 ### A-1: Read and Extract
