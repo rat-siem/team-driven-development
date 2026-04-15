@@ -36,8 +36,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$REPO_ROOT"
 
-# Check for uncommitted changes
-if ! git diff --quiet || ! git diff --cached --quiet; then
+# Check for uncommitted changes (ignore .claude/ session files)
+if ! git diff --quiet -- ':!.claude/' || ! git diff --cached --quiet -- ':!.claude/'; then
   echo "Error: Working tree has uncommitted changes. Commit or stash them first." >&2
   exit 1
 fi
