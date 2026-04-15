@@ -472,7 +472,7 @@ Gather all commit hashes, file changes, and test results.
 
 ## Red Flags
 
-**Never:**
+**Never (Full Mode):**
 - Start implementation on main branch without explicit user consent
 - Skip review for any task (even "simple" ones)
 - Let Lead write implementation code (Lead orchestrates, Workers implement)
@@ -483,6 +483,15 @@ Gather all commit hashes, file changes, and test results.
 - Skip the Sprint Contract (even for small tasks)
 - Let the Architect implement (Architect advises, Workers implement)
 - Cherry-pick before review is complete
+
+**Never (Lite Mode):**
+- Skip the Reviewer dispatch (review is always mandatory)
+- Exceed 2 fix rounds without escalating to human
+- Use Lite Mode if the user declined the Triage proposal
+
+**Never (both modes):**
+- Skip review entirely
+- Ignore REQUEST_CHANGES and move on without fixes
 
 **If Worker asks questions:** Answer completely before letting them proceed.
 
