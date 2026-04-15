@@ -33,6 +33,7 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 
 ## Key Features
 
+- **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process
 - **Dynamic team composition** — Roles assigned per task based on complexity and type
 - **Sprint Contracts** — Success criteria, non-goals, and review profile defined before work begins
 - **Effort Scoring** — Automatic model selection (cheap/standard/capable) based on task complexity
@@ -43,7 +44,13 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 
 ## How It Works
 
-### Phase A: Pre-delegate
+### Phase A-0: Triage
+1. Read the plan and calculate a Quick Score (task count, file count, domain spread, design keywords)
+2. Quick Score ≤ 1 → propose **Lite Mode** to the user
+3. User accepts → Lead implements directly with a single Reviewer pass at the end
+4. User declines or Quick Score > 1 → proceed to Full Mode (Phase A)
+
+### Phase A: Pre-delegate (Full Mode)
 1. Read and extract all tasks from the plan
 2. Analyze dependencies dynamically
 3. Score effort per task
