@@ -17,16 +17,22 @@ Execute implementation plans by orchestrating a team of specialized subagents. T
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
     "team-driven-development" [shape=box];
-    "Manual execution" [shape=box];
+    "Suggest quick-plan" [shape=box];
 
     "Have implementation plan?" -> "team-driven-development" [label="yes"];
-    "Have implementation plan?" -> "Manual execution" [label="no"];
+    "Have implementation plan?" -> "Suggest quick-plan" [label="no"];
 }
 ```
 
 **Use when:**
 - You have an implementation plan to execute
 - Simple plans automatically trigger a Lite Mode suggestion — no need to avoid this skill for small tasks
+
+**No plan available:**
+- If invoked without an implementation plan, suggest using the `quick-plan` skill first
+- Message: "No implementation plan found. Use quick-plan to generate a spec and plan first?"
+- If the user accepts, invoke the quick-plan skill with the user's original request
+- If the user declines, exit gracefully
 
 **Lite Mode is suggested when:**
 - Plan has 1-2 tasks with ≤ 3 files total
@@ -620,6 +626,7 @@ Include this section for each task that has findings. Omit for tasks with zero f
 ## Integration
 
 **Works with:**
+- **quick-plan** — Generates spec + plan for this skill to execute (lightweight alternative to superpowers brainstorming + writing-plans)
 - **superpowers:writing-plans** — Creates the plans this skill executes
 - **superpowers:using-git-worktrees** — Workers use worktree isolation
 - **superpowers:test-driven-development** — Workers follow TDD
