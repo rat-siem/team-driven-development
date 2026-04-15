@@ -1,0 +1,21 @@
+{
+  "name": "team-driven-development",
+  "description": "Team-based subagent orchestration for implementation plans. Assigns Lead/Worker/Reviewer/Architect roles dynamically per task, executes in isolated worktrees with Sprint Contracts and effort-based model selection.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takashi Kuga",
+    "email": "kuga@wkwk.co.jp"
+  },
+  "license": "MIT",
+  "keywords": [
+    "team",
+    "subagent",
+    "orchestration",
+    "sprint-contract",
+    "worktree",
+    "parallel",
+    "review"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}
