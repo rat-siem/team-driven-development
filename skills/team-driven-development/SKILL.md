@@ -139,6 +139,24 @@ digraph process {
     "Phase B: Delegate" [shape=box style=filled fillcolor=lightblue];
     "Phase C: Post-delegate" [shape=box style=filled fillcolor=lightgreen];
 
+    subgraph cluster_phase0 {
+        label="Phase 0: Guideline Check";
+        "P0-1: Detect domains from file paths" [shape=box];
+        "P0-2: Check guidelines/ for each domain" [shape=box];
+        "P0-3: All exist?" [shape=diamond];
+        "P0-4: Generate drafts from code/templates" [shape=box];
+        "P0-5: User approves?" [shape=diamond];
+
+        "P0-1: Detect domains from file paths" -> "P0-2: Check guidelines/ for each domain";
+        "P0-2: Check guidelines/ for each domain" -> "P0-3: All exist?";
+        "P0-3: All exist?" -> "P0-4: Generate drafts from code/templates" [label="missing"];
+        "P0-4: Generate drafts from code/templates" -> "P0-5: User approves?";
+        "P0-5: User approves?" -> "P0-4: Generate drafts from code/templates" [label="changes requested"];
+    }
+
+    "P0-3: All exist?" -> "Phase A-0: Triage" [label="all exist"];
+    "P0-5: User approves?" -> "Phase A-0: Triage" [label="approved"];
+
     subgraph cluster_triage {
         label="Phase A-0: Triage";
         "A0: Read plan, count tasks/files/domains" [shape=box];
@@ -238,6 +256,66 @@ digraph process {
 }
 ```
 
+## Phase 0: Guideline Check
+
+Detect domain-specific guidelines needed for the plan and ensure they exist before proceeding.
+
+### Trigger Condition
+
+Phase 0 runs only when at least one of the following is true for a detected domain:
+- The plan includes tasks that **create new files** in that domain
+- The plan includes tasks that **modify 3 or more files** in that domain
+
+If neither condition is met, skip Phase 0 entirely and proceed to Phase A-0: Triage. Small bug fixes and minor edits proceed without interruption.
+
+**Note:** This condition controls guideline *generation* only. If `guidelines/{domain}.md` already exists, the Lead always includes it in Sprint Contracts regardless of trigger conditions.
+
+### Custom Domains
+
+Users can add their own guideline files directly to the project's `guidelines/` directory (e.g., `guidelines/data-pipeline.md`). The Lead detects any file in that directory and incorporates it into Sprint Contracts for tasks touching relevant code, even if the domain is not in the built-in detection table. The Lead uses its fallback judgment to match custom domains to tasks.
+
+### Domain Detection Table
+
+Match task file paths against directory patterns:
+
+| Pattern | Domain |
+|---|---|
+| `components/`, `pages/`, `layouts/`, `styles/`, `*.css` | frontend |
+| `routes/`, `api/`, `controllers/`, `services/`, `models/` | backend |
+| `docs/`, `content/`, `*.md` | writing |
+| `__tests__/`, `tests/`, `*.test.*`, `*.spec.*` | testing |
+
+**Fallback:** When file paths don't match any pattern, the Lead determines the domain from task content and file analysis.
+
+### Steps
+
+**0-1: Domain Detection**
+Collect all file paths from all tasks in the plan. Match against the Domain Detection Table. Use Lead judgment as fallback for unmatched paths.
+
+**0-2: Guideline Existence Check**
+For each detected domain, check if `guidelines/{domain}.md` exists in the project.
+- All exist → skip to Phase A-0: Triage
+- Any missing → proceed to 0-3
+
+**0-3: Draft Generation**
+For each missing domain guideline:
+- **Existing code available:** Analyze current codebase to extract patterns (colors, spacing values, API response formats, naming conventions, test structure, etc.) and generate a populated draft based on the template from `templates/guidelines/{domain}.md`.
+- **New project (no existing code):** Copy the template from `templates/guidelines/{domain}.md` as-is for the user to fill in.
+
+Write drafts to the project's `guidelines/{domain}.md`.
+
+**0-4: User Approval Gate**
+Present generated guidelines to the user:
+> "Generated the following domain guidelines. Please review and edit as needed before I proceed."
+
+Show the content of each generated file. Wait for user response:
+- Approved → proceed to Phase A-0: Triage
+- Changes requested → apply edits and re-present
+
+### Applies to Both Modes
+
+Phase 0 runs before triage, so it applies to both Lite Mode and Full Mode.
+
 ## Phase A-0: Triage
 
 **Announce:** "I'm using team-driven-development to execute this plan."
@@ -301,7 +379,7 @@ When the user accepts Lite Mode, skip Phases A through C entirely. The Lead impl
 
 ### Lite Mode Flow
 
-1. **Execute tasks sequentially** — Lead implements each task directly, following Plan steps as-is. TDD is maintained.
+1. **Execute tasks sequentially** — Lead implements each task directly, following Plan steps as-is. TDD is maintained. If `guidelines/{domain}.md` files exist for relevant domains, the Lead follows them as implementation constraints.
 2. **Commit after each task** — One commit per task for clean history.
 3. **Dispatch Reviewer** — After all tasks complete, dispatch a Reviewer subagent with the full diff (base SHA from before Task 1 to HEAD). Use prompt template: `./prompts/reviewer-prompt.md`. The Reviewer evaluates the combined changes, not individual tasks.
 4. **Handle review verdict:**
