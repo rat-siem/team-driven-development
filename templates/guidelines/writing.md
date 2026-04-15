@@ -11,6 +11,3 @@ last_updated: YYYY-MM-DD
 
 ## Terminology
 <!-- Project-specific terms, abbreviations, and their definitions -->
-
-## Structure
-<!-- Document structure, heading conventions, section length guidelines -->

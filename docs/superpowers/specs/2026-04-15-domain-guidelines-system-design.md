@@ -183,14 +183,8 @@ last_updated: YYYY-MM-DD
 ## Spacing System
 <!-- Define base unit and scale -->
 
-## Typography
-<!-- Define font families, sizes, weights -->
-
 ## Component Conventions
 <!-- Naming, structure, prop patterns -->
-
-## Accessibility
-<!-- Minimum requirements: contrast, keyboard nav, aria labels -->
 ```
 
 ### backend.md
@@ -212,9 +206,6 @@ last_updated: YYYY-MM-DD
 
 ## Database Conventions
 <!-- Naming, indexing strategy, migration patterns -->
-
-## Authentication & Authorization
-<!-- Auth patterns, token handling, permission model -->
 ```
 
 ### writing.md
@@ -233,9 +224,6 @@ last_updated: YYYY-MM-DD
 
 ## Terminology
 <!-- Project-specific terms and their definitions -->
-
-## Structure
-<!-- Document structure, heading conventions, length guidelines -->
 ```
 
 ### testing.md
@@ -248,9 +236,6 @@ last_updated: YYYY-MM-DD
 ---
 
 # Testing Guidelines
-
-## Coverage Requirements
-<!-- Minimum coverage targets, what must be tested -->
 
 ## Test Structure
 <!-- Naming conventions, organization, setup/teardown patterns -->

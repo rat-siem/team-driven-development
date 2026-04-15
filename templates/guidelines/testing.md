@@ -6,9 +6,6 @@ last_updated: YYYY-MM-DD
 
 # Testing Guidelines
 
-## Coverage Requirements
-<!-- Minimum coverage targets, what must be tested, what can be skipped -->
-
 ## Test Structure
 <!-- Naming conventions, file organization, setup/teardown patterns -->
 

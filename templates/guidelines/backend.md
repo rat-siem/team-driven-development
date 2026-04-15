@@ -14,6 +14,3 @@ last_updated: YYYY-MM-DD
 
 ## Database Conventions
 <!-- Naming (tables, columns), indexing strategy, migration patterns -->
-
-## Authentication & Authorization
-<!-- Auth patterns, token handling, permission model, session management -->
