@@ -64,30 +64,15 @@
 
 ## インストール
 
-### GitHub マーケットプレイスから
-
-`~/.claude/settings.json` に追加：
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "team-driven-dev": {
-      "source": {
-        "source": "github",
-        "repo": "rat-siem/team-driven-development"
-      }
-    }
-  }
-}
-```
-
-インストール：
-
 ```bash
-claude plugin add team-driven-development@team-driven-dev
+# 1. マーケットプレイス登録
+claude plugin marketplace add https://github.com/rat-siem/team-driven-development
+
+# 2. インストール
+claude plugin install team-driven-development@team-driven-dev
 ```
 
-### ローカルパスから
+### ローカルパスから（開発用）
 
 ```bash
 claude plugin add /path/to/team-driven-development

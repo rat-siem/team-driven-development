@@ -65,30 +65,15 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 
 ## Installation
 
-### From GitHub Marketplace
-
-Add to your `~/.claude/settings.json`:
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "team-driven-dev": {
-      "source": {
-        "source": "github",
-        "repo": "rat-siem/team-driven-development"
-      }
-    }
-  }
-}
-```
-
-Then install:
-
 ```bash
-claude plugin add team-driven-development@team-driven-dev
+# 1. Register marketplace
+claude plugin marketplace add https://github.com/rat-siem/team-driven-development
+
+# 2. Install
+claude plugin install team-driven-development@team-driven-dev
 ```
 
-### From Local Path
+### From Local Path (for development)
 
 ```bash
 claude plugin add /path/to/team-driven-development
