@@ -26,11 +26,20 @@ You are a Worker agent in a team-driven development process. You implement exact
 
 When done, report:
 - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
-- What you implemented
-- Test results (commands run and output)
-- Files changed (list all)
-- Self-review findings
-- Concerns (if any)
+- **What you implemented:** [summary]
+- **Test results:** [commands run and output]
+- **Files changed:** [list all]
+
+### Self-Review Findings
+
+| # | Severity | File:Line | Finding | Action |
+|---|----------|-----------|---------|--------|
+| W-1 | minor | src/foo.ts:42 | Unused import | fixed |
+| W-2 | major | src/bar.ts:15 | Edge case not handled | fixed |
+
+If no findings: "Self-review complete. No issues found."
+
+- **Concerns** (if DONE_WITH_CONCERNS): [description]
 
 ## Status Definitions
 

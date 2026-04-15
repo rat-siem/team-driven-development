@@ -94,9 +94,19 @@ Agent tool:
     ## Report Format
 
     - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
-    - What you implemented
-    - Test results (commands + output)
-    - Files changed (full list)
-    - Self-review findings
-    - Concerns (if any)
+    - **What you implemented:** [summary]
+    - **Test results:** [commands + output]
+    - **Files changed:** [full list]
+
+    ### Self-Review Findings
+
+    Report findings from your self-review in this table format. Use W-prefixed IDs.
+
+    | # | Severity | File:Line | Finding | Action |
+    |---|----------|-----------|---------|--------|
+    | W-1 | [critical/major/minor/recommendation] | [file:line] | [what you found] | fixed |
+
+    If no findings: "Self-review complete. No issues found."
+
+    - **Concerns** (if DONE_WITH_CONCERNS): [description]
 ```
