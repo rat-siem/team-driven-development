@@ -33,6 +33,7 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 
 ## Key Features
 
+- **Quick Plan** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Use `/quick-plan` or let team-driven-development suggest it when no plan exists.
 - **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process
 - **Dynamic team composition** — Roles assigned per task based on complexity and type
 - **Sprint Contracts** — Success criteria, non-goals, and review profile defined before work begins
@@ -118,13 +119,21 @@ claude plugin update team-driven-development
 
 This plugin works best with [Superpowers](https://github.com/obra/superpowers) but can be used standalone.
 
-### With Superpowers (recommended)
+### With Quick Plan (self-contained)
+
+```
+/quick-plan <task description> → team-driven-development
+```
+
+The `quick-plan` skill generates a spec and plan with minimal dialogue — no superpowers dependency needed. When the plan is ready, it offers to hand off directly to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-plan automatically.
+
+### With Superpowers (thorough)
 
 ```
 brainstorming → writing-plans → team-driven-development
 ```
 
-The `writing-plans` skill produces a plan. When choosing an execution method, select Team-Driven Development for complex plans that benefit from role specialization.
+For tasks that need deep exploration — multiple approach comparisons, section-by-section design approval, visual mockups — use the full Superpowers flow. The `writing-plans` skill produces a plan. When choosing an execution method, select Team-Driven Development for complex plans that benefit from role specialization.
 
 ### Standalone
 
@@ -182,6 +191,14 @@ Tasks are scored 0-5 for complexity, which determines the Worker model:
 | 3+ | opus (capable) | Architecture: complex, cross-cutting |
 
 Scoring factors: file count, directory risk, keywords, cross-cutting concerns, new subsystems.
+
+## Design Note: Intentional YAGNI Violation on Deferral
+
+When a user defers a decision during quick-plan's clarification phase ("either is fine", "I'll leave it to you"), the skill deliberately violates the YAGNI principle. Instead of choosing the minimal/conservative option, it selects the most comprehensive approach that fully satisfies all potential requirements — even if this results in broader scope than the minimal interpretation.
+
+This is an explicit, intentional design choice. The rationale: when a user delegates a decision, they are trusting the agent to produce the strongest possible design. A narrow plan that leaves gaps is worse than a slightly broader plan that covers edge cases. The deferred decision and reasoning are recorded in the spec for transparency.
+
+This rule applies only to deferred decisions. When the user specifies a preference, that preference is always respected — YAGNI applies normally.
 
 ## Requirements
 

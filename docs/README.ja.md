@@ -32,6 +32,7 @@
 
 ## 主な機能
 
+- **Quick Plan** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。`/quick-plan` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
 - **適応的プロセス選択** — シンプルなプランには Lite Mode を提案、複雑なプランにはフルチームプロセスを使用
 - **動的チーム編成** — タスクの複雑度と種類に応じてロールを割り当て
 - **Sprint Contract** — 作業開始前に成功条件・非目標・レビュープロファイルを定義
@@ -117,13 +118,21 @@ claude plugin update team-driven-development
 
 [Superpowers](https://github.com/obra/superpowers) と組み合わせて使うのが最適ですが、単体でも使用できます。
 
-### Superpowers と併用（推奨）
+### Quick Plan と併用（自己完結）
+
+```
+/quick-plan <タスクの説明> → team-driven-development
+```
+
+`quick-plan` スキルは最小限の対話で spec と plan を生成します — superpowers への依存なし。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-plan を提案します。
+
+### Superpowers と併用（じっくり）
 
 ```
 brainstorming → writing-plans → team-driven-development
 ```
 
-`writing-plans` スキルがプランを出力します。実行方法の選択時に、役割分担が効果的な複雑なプランで Team-Driven Development を選択してください。
+深い探索が必要なタスク — 複数アプローチの比較、セクションごとの設計承認、ビジュアルモックアップ — には Superpowers のフルフローを使用してください。`writing-plans` スキルがプランを出力します。実行方法の選択時に、役割分担が効果的な複雑なプランで Team-Driven Development を選択してください。
 
 ### 単体で使用
 
@@ -181,6 +190,14 @@ def test_user_creation():
 | 3+ | opus (capable) | 設計: 複雑、横断的 |
 
 スコアリング要因: ファイル数、ディレクトリリスク、キーワード、横断的関心事、新規サブシステム。
+
+## 設計ノート: 委任時の意図的な YAGNI 違反
+
+quick-plan の質問フェーズでユーザーが判断を委任した場合（「どっちでもいい」「おまかせ」等）、このスキルは意図的に YAGNI 原則に違反します。最小限/保守的な選択肢を選ぶ代わりに、すべての潜在的要件を包括的に満たす最善のアプローチを選択します — 最小解釈よりもスコープが広がる場合であっても。
+
+これは明確かつ意図的な設計判断です。理由：ユーザーが判断を委任するとき、エージェントに最強の設計を期待しています。ギャップを残す狭いプランは、エッジケースをカバーするやや広いプランよりも劣ります。委任された判断とその理由は、透明性のため spec に記録されます。
+
+このルールは委任された判断にのみ適用されます。ユーザーが明確に指定した場合は、その指定が常に尊重され、YAGNI が通常通り適用されます。
 
 ## 必要条件
 
