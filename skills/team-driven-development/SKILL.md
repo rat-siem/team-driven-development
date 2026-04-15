@@ -148,6 +148,8 @@ Skip Phases A–C. Lead implements directly.
 |---|----------|---------|-------------|--------|
 ```
 
+**Worktree Cleanup (Lite):** If stale worktrees from prior sessions exist, offer cleanup per C-4.
+
 ## Phase A: Pre-delegate
 
 ### A-1: Read and Extract
@@ -283,6 +285,22 @@ Gather commit hashes, file changes, test results.
 
 ### C-3: Verify
 All plan tasks complete. All tests pass on main. No uncommitted changes.
+
+### C-4: Worktree Cleanup
+
+Present to user:
+
+```
+Worktrees from this session:
+- .claude/worktrees/agent-XXXX (branch: worktree-agent-XXXX)
+Clean up all? [Yes / No / Select]
+```
+
+- **Yes** → `git worktree remove` + `git branch -D` for each, then `git worktree prune`.
+- **Select** → user picks which to keep.
+- **No** → skip. Warn worktrees persist until manual removal.
+
+Skip only when no session worktrees exist.
 
 ## Red Flags
 
