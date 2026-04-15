@@ -15,8 +15,5 @@
     "worktree",
     "parallel",
     "review"
-  ],
-  "skills": [
-    "./skills"
   ]
 }
