@@ -19,3 +19,9 @@ Executes plans created by the Superpowers `writing-plans` skill using a team com
 - Review criteria pre-defined via Sprint Contracts
 - Automated model selection through Effort Scoring
 - Main branch protection via worktree isolation + cherry-pick
+
+## Prompt Language Policy
+
+- All files in this plugin repository must be written in English.
+- Exception: User-facing translation files (e.g., `docs/README.ja.md`).
+- Rationale: English text uses fewer tokens than equivalent Japanese text (roughly 2-3x difference due to tokenizer behavior), and a single language across all agent-facing instructions reduces ambiguity.
