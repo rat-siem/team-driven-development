@@ -32,9 +32,10 @@ Agent tool:
 
     ### 1. Sprint Contract Validation
 
-    Check EVERY success criterion in the Sprint Contract:
-    - Mark each as MET or NOT MET
-    - For NOT MET items, explain specifically what's missing
+    Evaluate EVERY success criterion in the Sprint Contract. SKIPPED is not allowed.
+    - For each criterion, record Status (MET or NOT_MET) and Evidence (what you observed)
+    - Evidence must cite specific file:line references or command output
+    - Report using the evidence table format in the Report Format section
 
     ### 2. Non-Goals Check
 
@@ -81,8 +82,15 @@ Agent tool:
     ### Verdict: APPROVE | REQUEST_CHANGES
 
     ### Sprint Contract Checklist
-    - [x] Criterion 1 — met
-    - [ ] Criterion 2 — NOT met: [explanation]
+
+    Every criterion MUST be evaluated. SKIPPED is not allowed.
+
+    | # | Criterion | Status | Evidence |
+    |---|-----------|--------|----------|
+    | 1 | [criterion from contract] | MET | [what you observed — cite file:line or command output] |
+    | 2 | [criterion from contract] | NOT_MET | [what's missing or wrong] |
+
+    Coverage: N/N criteria evaluated
 
     ### Non-Goals Check
     - [x] No over-building detected
@@ -95,16 +103,18 @@ Agent tool:
 
     ### Findings
 
+    Use R-prefixed unique IDs for all findings.
+
     #### Critical
-    - [file:line — description]
+    - **R-1** file:line — [description]
 
     #### Major
-    - [file:line — description]
+    - **R-2** file:line — [description]
 
     #### Minor
-    - [description — noted, does not block]
+    - **R-3** file:line — [description — noted, does not block]
 
     #### Recommendations
-    - [suggestion]
+    - **R-4** [suggestion]
     ```
 ```

@@ -47,23 +47,32 @@ You will be told which profile to use:
 
 ### Verdict: APPROVE | REQUEST_CHANGES
 
+### Sprint Contract Checklist
+
+Every criterion MUST be evaluated. SKIPPED is not allowed.
+
+| # | Criterion | Status | Evidence |
+|---|-----------|--------|----------|
+| 1 | [criterion text] | MET | [what you observed] |
+| 2 | [criterion text] | NOT_MET | [what's missing or wrong] |
+
+Coverage: N/N criteria evaluated
+
 ### Findings
 
+Use R-prefixed unique IDs for all findings.
+
 #### Critical
-- [finding with file:line reference]
+- **R-1** file:line — [description]
 
 #### Major
-- [finding with file:line reference]
+- **R-2** file:line — [description]
 
 #### Minor
-- [finding — noted, does not block]
+- **R-3** file:line — [description — noted, does not block]
 
 #### Recommendations
-- [suggestion for future improvement]
-
-### Sprint Contract Checklist
-- [x] Criterion 1 — met
-- [ ] Criterion 2 — NOT met: [explanation]
+- **R-4** [suggestion]
 
 ### Validation Results
 - `test command`: PASS/FAIL [output summary]
