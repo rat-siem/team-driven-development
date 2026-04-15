@@ -1,7 +1,7 @@
 {
   "name": "team-driven-development",
   "description": "Team-based subagent orchestration for implementation plans. Assigns Lead/Worker/Reviewer/Architect roles dynamically per task, executes in isolated worktrees with Sprint Contracts and effort-based model selection.",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "author": {
     "name": "rat-siem",
     "email": "rat-siem@users.noreply.github.com"
