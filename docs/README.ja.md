@@ -33,6 +33,7 @@
 ## 主な機能
 
 - **Quick Plan** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。`/quick-plan` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
+- **Solo Review** — Reviewer エージェントによる単体コードレビュー。レビュー対象を自動検出（ステージ済み、未コミット、ブランチ diff）し、基準を適応（Sprint Contract → プラン派生 → 汎用）して構造化された判定を出力。`/solo-review` でフルチームワークフローなしにレビューを実行。
 - **適応的プロセス選択** — シンプルなプランには Lite Mode を提案、複雑なプランにはフルチームプロセスを使用
 - **動的チーム編成** — タスクの複雑度と種類に応じてロールを割り当て
 - **Sprint Contract** — 作業開始前に成功条件・非目標・レビュープロファイルを定義
@@ -125,6 +126,26 @@ claude plugin update team-driven-development
 ```
 
 `quick-plan` スキルは最小限の対話で spec と plan を生成します — superpowers への依存なし。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-plan を提案します。
+
+### Solo Review（単体レビュー）
+
+```
+/solo-review
+```
+
+フルチームワークフローなしで現在の変更をレビューします。レビュー対象と基準を自動検出します：
+
+- **Sprint Contract あり?** → 契約ベースレビュー（team-driven-development と同一）
+- **プランファイルあり?** → 該当するプランタスクから基準を導出
+- **どちらもなし?** → 汎用コードレビュー（セキュリティ、正確性、テストカバレッジ）
+
+オーバーライドオプション：
+```
+/solo-review HEAD~3..HEAD              # 特定のコミット範囲
+/solo-review src/api/                  # 特定のパス
+/solo-review --profile runtime         # ランタイム検証を強制
+/solo-review --contract path/to/contract.md  # 特定の Sprint Contract を使用
+```
 
 ### Superpowers と併用（じっくり）
 
