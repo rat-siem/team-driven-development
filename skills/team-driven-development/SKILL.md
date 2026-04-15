@@ -273,7 +273,15 @@ When the user accepts Lite Mode, skip Phases A through C entirely. The Lead impl
 - def5678: Task 2 - [description]
 
 ### Review
-- Reviewer: [APPROVE | REQUEST_CHANGES → fixed in round N]
+- Verdict: [APPROVE | REQUEST_CHANGES → fixed in round N]
+- Findings: N critical, N major, N minor, N recommendations
+
+### Review Detail (if findings exist)
+
+| # | Severity | Finding | Disposition | Detail |
+|---|----------|---------|-------------|--------|
+| R-1 | major | Missing validation | fixed | Round 2 |
+| R-2 | minor | Variable naming | deferred | Style preference |
 ```
 
 ### Lite Mode Red Flags
@@ -538,17 +546,29 @@ Gather all commit hashes, file changes, and test results.
 
 ### Tasks Completed: N/N
 
-| Task | Status | Files Changed | Reviewer Profile | Rounds |
-|------|--------|--------------|-----------------|--------|
-| 1    | Done   | 3            | static          | 1      |
-| 2    | Done   | 7            | runtime         | 2      |
-| ...  | ...    | ...          | ...             | ...    |
+| Task | Status | Files | Profile | Rounds | Findings |
+|------|--------|-------|---------|--------|----------|
+| 1    | Done   | 3     | static  | 1      | 0 critical, 0 major, 1 minor |
+| 2    | Done   | 7     | runtime | 2      | 0 critical, 1 major, 2 minor |
+
+### Review Detail
+
+Include this section for each task that has findings. Omit for tasks with zero findings.
+
+#### Task N - [Name]
+| # | Source | Severity | Finding | Disposition | Detail |
+|---|--------|----------|---------|-------------|--------|
+| W-1 | self-review | minor | Unused import | fixed | — |
+| R-1 | reviewer | major | Missing null check | fixed | Round 2, commit def567 |
+| R-2 | reviewer | minor | Variable naming | deferred | Style preference, no functional impact |
 
 ### Summary
 - Total files changed: N
 - Total commits: N
 - Architect consulted: Tasks [2, 5]
 - Review rounds: avg N per task
+- Findings: N critical, N major, N minor, N recommendations
+- Deferred items: N (see Review Detail for reasons)
 
 ### Commit Log
 - abc1234: Task 1 - [description]
