@@ -45,8 +45,15 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 - **Three-tier review** — `static` (Lead reads diff), `runtime` (agent runs tests), `browser` (agent + UI verification)
 - **Review Ledger** — Every finding tracked with disposition (fixed/deferred/wont-fix) across review rounds, surfaced in the completion report
 - **Sprint Contract QA** — Contracts validated before Worker dispatch (verifiable criteria, non-goals, profile match)
+- **Domain Guidelines** — Auto-detects when a project lacks domain-specific guidelines (frontend, backend, writing, testing), generates drafts from existing code, and integrates approved guidelines into Sprint Contracts. Workers follow them as constraints; Reviewers check compliance.
 
 ## How It Works
+
+### Phase 0: Guideline Check
+1. Detect which domains the plan touches (directory-pattern matching with Lead fallback)
+2. Check if `guidelines/{domain}.md` exists for each domain
+3. If missing and the plan creates new files or modifies 3+ files in that domain → generate a draft from existing code or templates
+4. User approves or edits the draft → guidelines are used in Sprint Contracts going forward
 
 ### Phase A-0: Triage
 1. Read the plan and calculate a Quick Score (task count, file count, domain spread, design keywords)

@@ -44,8 +44,15 @@
 - **3段階レビュー** — `static`（Lead が diff 確認）、`runtime`（エージェントがテスト実行）、`browser`（エージェント + UI 検証）
 - **Review Ledger** — 全指摘を disposition（fixed/deferred/wont-fix）付きで追跡し、完了レポートに集約
 - **Sprint Contract QA** — Worker 派遣前に Contract を検証（検証可能な基準、非目標、プロファイル一致）
+- **Domain Guidelines** — プロジェクトにドメイン固有のガイドライン（フロントエンド、バックエンド、ライティング、テスト）がない場合を自動検知し、既存コードからドラフトを生成。承認されたガイドラインは Sprint Contract に組み込まれ、Worker は制約として従い、Reviewer は準拠をチェック。
 
 ## 動作フロー
+
+### Phase 0: ガイドラインチェック
+1. プランが触れるドメインを検知（ディレクトリパターンマッチング + Lead のフォールバック判断）
+2. 各ドメインの `guidelines/{domain}.md` の存在を確認
+3. 未存在かつ新規ファイル作成 or 同一ドメイン3ファイル以上変更 → 既存コードまたはテンプレートからドラフト生成
+4. ユーザーが承認・編集 → 以降の Sprint Contract でガイドラインを使用
 
 ### Phase A-0: トリアージ
 1. プランを読み取り Quick Score を算出（タスク数、ファイル数、ドメイン分散、設計キーワード）
