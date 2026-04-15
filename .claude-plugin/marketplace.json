@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "team-driven-dev",
+  "description": "Team-based subagent orchestration plugins",
+  "owner": {
+    "name": "rat-siem",
+    "email": "rat-siem@users.noreply.github.com"
+  },
+  "plugins": [
+    {
+      "name": "team-driven-development",
+      "description": "Team-based subagent orchestration for implementation plans. Assigns Lead/Worker/Reviewer/Architect roles dynamically per task.",
+      "category": "development",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/rat-siem/team-driven-development.git"
+      },
+      "homepage": "https://github.com/rat-siem/team-driven-development"
+    }
+  ]
+}
