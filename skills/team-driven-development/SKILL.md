@@ -286,15 +286,24 @@ Gather commit hashes, file changes, test results, implementation summaries, defe
 ```markdown
 ## Completion Report
 ### Tasks Completed: N/N
-| Task | Status | Files | Profile | Rounds | Findings |
-|------|--------|-------|---------|--------|----------|
+| Task | Status | Files | Profile | Rounds | Findings | Tests |
+|------|--------|-------|---------|--------|----------|-------|
+### Implementation Summary
+#### Task N: [name]
+[What was built — 2–4 sentences] **Files:** f1, f2
+### Test Results (skip if all clean)
+| Task | Command | Passed | Failed | Skipped |
+|------|---------|--------|--------|---------|
 ### Review Detail (per task with findings)
 | # | Source | Severity | Finding | Disposition | Detail |
 |---|--------|----------|---------|-------------|--------|
+### Deferred Items (skip if none)
+| # | Task | Severity | Finding | Disposition | Reason |
+|---|------|----------|---------|-------------|--------|
 ### Summary
 - Files changed / Commits / Architect consulted / Avg rounds / Findings / Deferred
 ### Commit Log
-- hash: Task N - [description]
+- hash: Task N - description
 ```
 
 ### C-3: Verify
