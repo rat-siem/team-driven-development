@@ -149,7 +149,7 @@ Skip Phases A–C. Lead implements directly.
 ## Completion Report (Lite Mode)
 ### Tasks Completed: N/N
 ### Implementation Summary
-[What was built — 2–4 sentences. Per-task if N > 2.] **Files:** f1, f2
+[What was built — 2–4 sentences. Per-task if N > 2.] Files: f1, f2
 ### Commit Log
 - hash: Task N - description
 ### Test Results
@@ -162,7 +162,6 @@ Skip Phases A–C. Lead implements directly.
 |---|----------|---------|-------------|--------|
 ### Deferred Items (skip if none)
 | # | Severity | Finding | Disposition | Reason |
-|---|----------|---------|-------------|--------|
 ```
 
 **Worktree Cleanup (Lite):** If stale worktrees from prior sessions exist, offer cleanup per C-4.
@@ -252,7 +251,7 @@ Template: `./prompts/worker-prompt.md`
 
 Never force retry without changes.
 
-**On DONE/DONE_WITH_CONCERNS:** Store `### Implementation Summary`, `### Files Changed`, `### Test Results` per task → C-2. Missing summary → synthesise from commits+diff. Missing test results → "not reported".
+**On DONE/DONE_WITH_CONCERNS:** Store `### Implementation Summary`, `### Files Changed`, `### Test Results` per task → C-2. Missing summary → synthesise from commits+diff. Missing test results → not reported.
 
 ### B-4: Review
 
@@ -297,16 +296,13 @@ Gather commit hashes, file changes, test results, implementation summaries, defe
 |------|--------|-------|---------|--------|----------|-------|
 ### Implementation Summary
 #### Task N: [name]
-[What was built — 2–4 sentences] **Files:** f1, f2
+[What was built — 2–4 sentences] Files: f1, f2
 ### Test Results (skip if all clean)
 | Task | Command | Passed | Failed | Skipped |
-|------|---------|--------|--------|---------|
 ### Review Detail (per task with findings)
 | # | Source | Severity | Finding | Disposition | Detail |
-|---|--------|----------|---------|-------------|--------|
 ### Deferred Items (skip if none)
 | # | Task | Severity | Finding | Disposition | Reason |
-|---|------|----------|---------|-------------|--------|
 ### Summary
 - Files changed / Commits / Architect consulted / Avg rounds / Findings / Deferred
 ### Commit Log

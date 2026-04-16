@@ -27,14 +27,13 @@ Agent tool:
     If anything is unclear — requirements, approach, dependencies — ask now.
 
     ## Expected Output
-
     ### Status: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
     ### Implementation Summary
     [What was built — 2–4 sentences]
     ### Files Changed
     - Created/Modified: path — purpose/change
     ### Test Results
-    - Command: `<cmd>`; N passed, N failed, N skipped
+    - `<cmd>`; N passed, N failed, N skipped
     ### Commits
     - <hash>: <message>
     (DONE_WITH_CONCERNS: add ### Concerns after Commits)
