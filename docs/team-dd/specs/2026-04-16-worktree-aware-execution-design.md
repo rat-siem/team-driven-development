@@ -22,28 +22,19 @@ git rev-parse --git-dir
 
 If the output contains `/worktrees/` (e.g. `/repo/.git/worktrees/feature-x`), the Lead is inside a worktree. This is reliable and does not trigger on submodules (which return `.git` or `.git/modules/…`).
 
-Additional guards before activating Worktree Mode:
+Guard before activating Worktree Mode:
 
-1. **Refuse on main/master**: if current branch is `main` or `master`, stop with: `"Worktree Mode cannot run on main/master — switch to a feature branch first."` (Committing Workers directly to main violates the plugin's branch protection principle.)
-2. **Clean tree required**: run `git diff-index --quiet HEAD --`. If it fails (uncommitted changes exist), stop with: `"Worktree Mode requires a clean working tree — commit or stash your changes first."`
+- **Clean tree required**: run `git diff-index --quiet HEAD --`. If it fails (uncommitted changes exist), stop with: `"Commit or stash changes first."`
 
 ### Worktree Mode vs Full Mode
 
 | Aspect | Full Mode | Worktree Mode |
 |--------|-----------|---------------|
-| B-2 Worker dispatch | `isolation: "worktree"` | Omit `isolation` — worker runs in current directory |
-| Parallel Workers | Up to 2 | Sequential only |
+| B-2 Worker dispatch | `isolation: "worktree"` | Omit — worker runs in current directory |
 | B-6 Cherry-pick | Yes → main | **Skipped** |
-| C-3 Verify | Tests pass on main | Tests pass on current branch |
-| C-4 Worktree Cleanup | Offer cleanup | **Skipped** |
-| Rollback reference | n/a | Record `HEAD` SHA before each Worker dispatch |
-| Everything else | Unchanged | Unchanged |
+| Everything else | Unchanged | Unchanged (LLM infers consequences) |
 
-Worktree Mode is not a new mode — it is Full Mode with guards, two phases skipped, and `isolation` removed from B-2.
-
-### Rollback Reference
-
-Before dispatching each Worker, record `git rev-parse HEAD`. If a Worker fails, the failure report includes: `"To undo this task: git reset --soft <sha>"`.
+Worktree Mode is not a new mode — it is Full Mode with one guard, one parameter removed from B-2, and B-6 skipped.
 
 ### Lite Mode Interaction
 
@@ -55,37 +46,29 @@ Sub-worktrees could be created from the current worktree's HEAD (`git worktree a
 
 ### SKILL.md Text (target)
 
-The following is the actual text to add to SKILL.md, written for minimal tokens while covering all required behaviors:
-
----
-
-**Add to Phase A-0, before Quick Score:**
+Add to Phase A-0, before Quick Score:
 
 ```markdown
 ### Worktree Check
 
 Run: `git rev-parse --git-dir`
 
-If output contains `/worktrees/` → **Worktree Mode** (announce: *"Running in worktree context."*):
-- Refuse if branch is main/master.
-- Refuse if `git diff-index --quiet HEAD --` fails (uncommitted changes — commit or stash first).
-- Workers commit directly to this branch. Omit `isolation: "worktree"` from B-2 dispatch. Sequential only.
-- Skip B-6. C-3: verify on current branch. Skip C-4.
-- Record `git rev-parse HEAD` before each Worker. On failure, report: `git reset --soft <sha>` to undo.
+If output contains `/worktrees/` → **Worktree Mode**:
+- Refuse if `git diff-index --quiet HEAD --` fails → `"Commit or stash changes first."`
+- Announce: `"Running in worktree context."`
+- B-2: omit `isolation: "worktree"`.
+- Skip B-6.
 ```
 
----
-
-Total addition: 10 lines. Covers detection, guards, dispatch change, skipped phases, and rollback.
+6 lines. Covers detection, dirty-tree guard, announcement, dispatch change, and B-6 skip.
 
 ## Testing Strategy
 
 Manual verification:
-- From inside a worktree on a feature branch with clean tree: confirm announcement, Workers commit to current branch, no sub-worktrees created, no cherry-pick prompt
-- From inside a worktree on main: confirm refusal message
-- From inside a worktree with dirty tree: confirm refusal message
-- From a submodule: confirm Worktree Mode does NOT activate
-- From main repo: confirm normal Full Mode (no detection change)
+- Worktree, clean tree → announcement appears, Workers commit to current branch, no sub-worktrees, no cherry-pick prompt
+- Worktree, dirty tree → refusal message
+- Submodule → Worktree Mode does NOT activate
+- Main repo → normal Full Mode (no change)
 
 ## File Changes
 
