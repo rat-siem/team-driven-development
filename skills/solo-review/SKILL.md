@@ -128,9 +128,9 @@ Agent tool:
   mode: "bypassPermissions"
   description: "solo-review: [brief description of changes]"
   prompt: |
-    You are a Reviewer agent performing a standalone code review.
-
     ## Review Profile: [runtime | browser]
+
+    Evaluate every criterion in ## Review Criteria. SKIPPED is not allowed.
 
     ## Review Criteria
 
@@ -144,79 +144,7 @@ Agent tool:
 
     [List all changed files]
 
-    ## Your Job
-
-    ### 1. Criteria Validation
-
-    Evaluate EVERY criterion. SKIPPED is not allowed.
-    - For each criterion, record Status (MET or NOT_MET) and Evidence (what you observed)
-    - Evidence must cite specific file:line references or command output
-
-    ### 2. Runtime Validation (runtime + browser profiles)
-
-    Run test/typecheck/lint commands found in the project:
-    - Report exact command and output
-    - PASS or FAIL for each
-
-    ### 3. Browser Validation (browser profile only)
-
-    If UI files changed:
-    - Start dev server if possible
-    - Verify UI renders correctly
-    - Check for visual regressions
-
-    ### 4. Code Quality Scan
-
-    Quick scan for:
-    - Security vulnerabilities (critical)
-    - Broken existing functionality (major)
-    - Missing test coverage for new logic (major)
-    - Style/naming issues (minor — do NOT block on these)
-
-    ## Severity Rules
-
-    | Severity | Verdict Impact |
-    |----------|---------------|
-    | critical | REQUEST_CHANGES |
-    | major    | REQUEST_CHANGES |
-    | minor    | No impact — note only |
-    | recommendation | No impact — note only |
-
-    **If ONLY minor/recommendation findings exist → MUST return APPROVE.**
-
-    ## Report Format
-
-    ```markdown
-    ## Review: solo-review
-
-    ### Verdict: APPROVE | REQUEST_CHANGES
-
-    ### Checklist
-
-    | # | Criterion | Status | Evidence |
-    |---|-----------|--------|----------|
-    | 1 | [criterion] | MET | [what you observed — cite file:line or command output] |
-
-    Coverage: N/N criteria evaluated
-
-    ### Validation Results (if runtime/browser)
-    - `command`: PASS/FAIL
-      [output summary]
-
-    ### Findings
-
-    #### Critical
-    - **R-1** file:line — [description]
-
-    #### Major
-    - **R-2** file:line — [description]
-
-    #### Minor
-    - **R-3** file:line — [description — noted, does not block]
-
-    #### Recommendations
-    - **R-4** [suggestion]
-    ```
+    Use `## Review: solo-review` as the report header.
 ```
 
 ## Output
@@ -230,15 +158,6 @@ If the verdict is REQUEST_CHANGES, end with:
 If the verdict is APPROVE, end with:
 
 > "Review passed — no blocking issues found."
-
-## Red Flags
-
-**Never:**
-- Enter a fix loop (solo-review is report-only)
-- Skip criteria evaluation (every criterion must be MET or NOT_MET)
-- Block on minor/recommendation findings
-- Modify any code (review only, no changes)
-- Dispatch a Worker or Architect (Reviewer only)
 
 ## Integration
 

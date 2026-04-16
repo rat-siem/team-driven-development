@@ -62,6 +62,7 @@
 - **Sprint Contract** — 作業開始前に成功条件・非目標・レビュープロファイルを定義
 - **Effort Scoring** — タスク複雑度に基づくモデル自動選択（cheap/standard/capable）
 - **Worktree 隔離** — Worker は隔離された worktree で作業。承認後にのみ main に反映
+- **Worktree 対応実行** — git worktree の中から呼び出された場合を自動検知。Worker が現在のブランチに直接コミットするよう切り替え、sub-worktree の作成と cherry-pick をスキップ
 - **動的依存解析** — プラン内容（ファイルパス、import、論理的依存）から実行順序を決定
 - **並列実行** — 独立したタスクは複数の Worker で同時実行
 - **3段階レビュー** — `static`（Lead が diff 確認）、`runtime`（エージェントがテスト実行）、`browser`（エージェント + UI 検証）
@@ -78,6 +79,7 @@
 4. ユーザーが承認・編集 → 以降の Sprint Contract でガイドラインを使用
 
 ### Phase A-0: トリアージ
+0. **Worktree チェック** — git worktree の中から実行されているか検知。該当する場合は Worktree Mode に切り替え：Worker が現在のブランチに直接コミット（sub-worktree・cherry-pick なし）。クリーンな作業ツリーが必要。
 1. プランを読み取り Quick Score を算出（タスク数、ファイル数、ドメイン分散、設計キーワード）
 2. Quick Score ≤ 1 → ユーザーに **Lite Mode** を提案
 3. ユーザーが承諾 → Lead が直接実装し、最後に Reviewer が一括レビュー
