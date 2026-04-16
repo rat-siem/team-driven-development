@@ -130,6 +130,8 @@ Agent tool:
   prompt: |
     ## Review Profile: [runtime | browser]
 
+    Evaluate every criterion in ## Review Criteria. SKIPPED is not allowed.
+
     ## Review Criteria
 
     [Paste the criteria — Sprint Contract, plan-derived checklist, or generic criteria table]
