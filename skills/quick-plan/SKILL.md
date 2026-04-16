@@ -72,12 +72,6 @@ Do NOT deep-dive every aspect of the request. Instead:
 - A design choice would significantly affect implementation and there's no clear default
 - The codebase has no existing pattern to follow for this type of change
 
-**What does NOT need a question:**
-- Technology choice when the codebase already uses a specific stack
-- File location when existing conventions make it obvious
-- Error handling approach when the codebase has an established pattern
-- Testing strategy when the project has existing test patterns
-
 **Fallback when the user defers a decision:**
 
 When the user responds with "either is fine", "I'll leave it to you", "up to you", or similar deferral:
@@ -237,13 +231,3 @@ If Yes: invoke the team-driven-development skill. Do NOT invoke any superpowers 
 - **One question at a time** — When you do need to ask, keep it focused. Multiple-choice preferred.
 - **YAGNI unless deferred** — Don't design features the user didn't ask for. But when the user defers a decision to you, choose the most comprehensive approach that fully satisfies all potential requirements.
 - **Self-contained** — This skill does not depend on or invoke superpowers skills.
-
-## Red Flags
-
-**Never:**
-- Write implementation code during quick-plan (spec + plan only)
-- Skip user confirmation gates (both spec and plan require approval)
-- Ask questions that could be answered by reading the codebase
-- Generate abbreviated or "lite" documents — output quality is always full
-- Invoke superpowers:brainstorming or superpowers:writing-plans
-- Proceed to plan generation before spec is approved
