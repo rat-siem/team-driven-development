@@ -141,6 +141,8 @@ Agent tool:
     ## Files Changed
 
     [List all changed files]
+
+    Use `## Review: solo-review` as the report header.
 ```
 
 ## Output
