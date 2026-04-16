@@ -148,13 +148,20 @@ Skip Phases A–C. Lead implements directly.
 ```markdown
 ## Completion Report (Lite Mode)
 ### Tasks Completed: N/N
+### Implementation Summary
+[What was built — 2–4 sentences. Per-task if N > 2.] **Files:** f1, f2
 ### Commit Log
-- abc1234: Task 1 - [description]
+- hash: Task N - description
+### Test Results
+- `<cmd>`; N passed, 0 failed
 ### Review
-- Verdict: [APPROVE | REQUEST_CHANGES → fixed round N]
+- Verdict: APPROVE | REQUEST_CHANGES → fixed round N
 - Findings: Nc, NM, Nm, Nr
-### Review Detail (if findings)
+### Review Detail (skip if none)
 | # | Severity | Finding | Disposition | Detail |
+|---|----------|---------|-------------|--------|
+### Deferred Items (skip if none)
+| # | Severity | Finding | Disposition | Reason |
 |---|----------|---------|-------------|--------|
 ```
 
