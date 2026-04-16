@@ -245,6 +245,8 @@ Template: `./prompts/worker-prompt.md`
 
 Never force retry without changes.
 
+**On DONE/DONE_WITH_CONCERNS:** Store `### Implementation Summary`, `### Files Changed`, `### Test Results` per task → C-2. Missing summary → synthesise from commits+diff. Missing test results → "not reported".
+
 ### B-4: Review
 
 **static (Lead):** Read diff → evidence table per criterion (MET/NOT_MET + evidence) → verify non-goals → L-prefixed findings in Ledger → verdict.
