@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Use team-driven-development to execute this plan.
 
-**Goal:** Add an `### Implementation Summary` section to both Full Mode and Lite Mode Completion Reports, and extend the Worker output format to supply it.
+**Goal:** Add `### Implementation Summary`, `### Test Results`, and `### Deferred Items` sections to both Full Mode and Lite Mode Completion Reports, and extend Worker output format to supply the data.
 
 **Architecture:** Two prompt-document files are edited — `SKILL.md` for Lead behavior and `worker-prompt.md` for Worker output format. No code compilation or test runner involved; verification is done by reading the updated files and confirming consistency.
 
@@ -41,27 +41,23 @@
   ```
       ## Expected Output
 
-      Report status using this format:
-
-      ### Status: [DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED]
-
+      ### Status: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
       ### Implementation Summary
-      [2–4 sentences describing what was built or changed]
-
+      [What was built — 2–4 sentences]
       ### Files Changed
-      - Created: path/to/file — [purpose]
-      - Modified: path/to/file — [what changed]
-
+      - Created/Modified: path — purpose/change
+      ### Test Results
+      - Command: `<cmd>`; N passed, N failed, N skipped
       ### Commits
       - <hash>: <message>
-
-      (For DONE_WITH_CONCERNS, add a ### Concerns section after Commits.)
+      (DONE_WITH_CONCERNS: add ### Concerns after Commits)
   ```
 
 - [ ] **Step 3: Verify**
   Read the updated file and confirm:
   - `## Expected Output` section is present
   - `### Implementation Summary` heading appears
+  - `### Test Results` heading appears
   - File is syntactically valid Markdown
 
 - [ ] **Step 4: Commit**
@@ -95,7 +91,7 @@
   Add one line below the table:
 
   ```markdown
-  **On DONE/DONE_WITH_CONCERNS:** Extract `### Implementation Summary` and `### Files Changed` from Worker output. Store per task for C-2. If absent, synthesise from commit messages and diff.
+  **On DONE/DONE_WITH_CONCERNS:** Store `### Implementation Summary`, `### Files Changed`, `### Test Results` per task → C-2. Missing summary → synthesise from commits+diff. Missing test results → "not reported".
   ```
 
 - [ ] **Step 3: Verify**
@@ -131,7 +127,7 @@
   With:
   ```markdown
   ### C-1: Collect Results
-  Gather commit hashes, file changes, test results, and per-task implementation summaries (collected in B-3).
+  Gather commit hashes, file changes, test results, implementation summaries, deferred details (from B-3).
   ```
 
 - [ ] **Step 3: Verify**
@@ -166,32 +162,35 @@
   - hash: Task N - [description]
   ```
 
-- [ ] **Step 2: Add Implementation Summary section**
+- [ ] **Step 2: Add Implementation Summary, Test Results, and Deferred Items sections**
 
   Replace the C-2 template with:
   ```markdown
   ## Completion Report
   ### Tasks Completed: N/N
-  | Task | Status | Files | Profile | Rounds | Findings |
-  |------|--------|-------|---------|--------|----------|
+  | Task | Status | Files | Profile | Rounds | Findings | Tests |
+  |------|--------|-------|---------|--------|----------|-------|
   ### Implementation Summary
-  #### Task 1: [name]
-  [2–4 sentence description of what was built]
-  **Files:** path/to/file1, path/to/file2
-
   #### Task N: [name]
-  ...
+  [What was built — 2–4 sentences] **Files:** f1, f2
+  ### Test Results (skip if all clean)
+  | Task | Command | Passed | Failed | Skipped |
   ### Review Detail (per task with findings)
   | # | Source | Severity | Finding | Disposition | Detail |
-  |---|--------|----------|---------|-------------|--------|
+  ### Deferred Items (skip if none)
+  | # | Task | Severity | Finding | Disposition | Reason |
   ### Summary
   - Files changed / Commits / Architect consulted / Avg rounds / Findings / Deferred
   ### Commit Log
-  - hash: Task N - [description]
+  - hash: Task N - description
   ```
 
 - [ ] **Step 3: Verify**
-  Read the updated section and confirm `### Implementation Summary` appears between the task table and Review Detail.
+  Read the updated section and confirm:
+  - `### Implementation Summary` appears between task table and Test Results
+  - `### Test Results` appears before Review Detail
+  - `### Deferred Items` appears after Review Detail
+  - Tasks table has a "Tests" column
 
 - [ ] **Step 4: Commit**
   ```bash
@@ -221,27 +220,32 @@
   |---|----------|---------|-------------|--------|
   ```
 
-- [ ] **Step 2: Add Implementation Summary section**
+- [ ] **Step 2: Add Implementation Summary, Test Results, and Deferred Items sections**
 
   Replace the Lite Mode Completion Report template with:
   ```markdown
   ## Completion Report (Lite Mode)
   ### Tasks Completed: N/N
   ### Implementation Summary
-  [2–4 sentences describing what was built. Per-task breakdown if N > 2.]
-  **Files:** path/to/file1, path/to/file2
+  [What was built — 2–4 sentences. Per-task if N > 2.] **Files:** f1, f2
   ### Commit Log
-  - abc1234: Task 1 - [description]
+  - hash: Task N - description
+  ### Test Results
+  - `<cmd>`; N passed, 0 failed
   ### Review
-  - Verdict: [APPROVE | REQUEST_CHANGES → fixed round N]
+  - Verdict: APPROVE | REQUEST_CHANGES → fixed round N
   - Findings: Nc, NM, Nm, Nr
-  ### Review Detail (if findings)
+  ### Review Detail (skip if none)
   | # | Severity | Finding | Disposition | Detail |
-  |---|----------|---------|-------------|--------|
+  ### Deferred Items (skip if none)
+  | # | Severity | Finding | Disposition | Reason |
   ```
 
 - [ ] **Step 3: Verify**
-  Confirm `### Implementation Summary` appears after `### Tasks Completed` and before `### Commit Log`.
+  Confirm:
+  - `### Implementation Summary` appears after `### Tasks Completed` and before `### Commit Log`
+  - `### Test Results` appears after `### Commit Log` and before `### Review`
+  - `### Deferred Items` appears at the end
 
 - [ ] **Step 4: Commit**
   ```bash
