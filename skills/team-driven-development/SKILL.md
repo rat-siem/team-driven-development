@@ -97,6 +97,16 @@ Applies to both Lite and Full Mode.
 
 **Announce:** "I'm using team-driven-development to execute this plan."
 
+### Worktree Check
+
+Run: `git rev-parse --git-dir`
+
+If output contains `/worktrees/` → **Worktree Mode**:
+- Refuse if `git diff-index --quiet HEAD --` fails → `"Commit or stash changes first."`
+- Announce: `"Running in worktree context."`
+- B-2: omit `isolation: "worktree"`.
+- Skip B-6.
+
 ### Quick Score
 
 | Factor | 0 | +1 | +2 |
