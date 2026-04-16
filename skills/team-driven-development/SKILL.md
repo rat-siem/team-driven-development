@@ -148,14 +148,20 @@ Skip Phases A–C. Lead implements directly.
 ```markdown
 ## Completion Report (Lite Mode)
 ### Tasks Completed: N/N
+### Implementation Summary
+[What was built — 2–4 sentences. Per-task if N > 2.] Files: f1, f2
 ### Commit Log
-- abc1234: Task 1 - [description]
+- hash: Task N - description
+### Test Results
+- `<cmd>`; N passed, 0 failed
 ### Review
-- Verdict: [APPROVE | REQUEST_CHANGES → fixed round N]
+- Verdict: APPROVE | REQUEST_CHANGES → fixed round N
 - Findings: Nc, NM, Nm, Nr
-### Review Detail (if findings)
+### Review Detail (skip if none)
 | # | Severity | Finding | Disposition | Detail |
 |---|----------|---------|-------------|--------|
+### Deferred Items (skip if none)
+| # | Severity | Finding | Disposition | Reason |
 ```
 
 **Worktree Cleanup (Lite):** If stale worktrees from prior sessions exist, offer cleanup per C-4.
@@ -245,6 +251,8 @@ Template: `./prompts/worker-prompt.md`
 
 Never force retry without changes.
 
+**On DONE/DONE_WITH_CONCERNS:** Store `### Implementation Summary`, `### Files Changed`, `### Test Results` per task → C-2. Missing summary → synthesise from commits+diff. Missing test results → not reported.
+
 ### B-4: Review
 
 **static (Lead):** Read diff → evidence table per criterion (MET/NOT_MET + evidence) → verify non-goals → L-prefixed findings in Ledger → verdict.
@@ -278,21 +286,27 @@ git commit -m "<task description>"
 ## Phase C: Post-delegate
 
 ### C-1: Collect Results
-Gather commit hashes, file changes, test results.
+Gather commit hashes, file changes, test results, implementation summaries, deferred details (from B-3).
 
 ### C-2: Completion Report
 ```markdown
 ## Completion Report
 ### Tasks Completed: N/N
-| Task | Status | Files | Profile | Rounds | Findings |
-|------|--------|-------|---------|--------|----------|
+| Task | Status | Files | Profile | Rounds | Findings | Tests |
+|------|--------|-------|---------|--------|----------|-------|
+### Implementation Summary
+#### Task N: [name]
+[What was built — 2–4 sentences] Files: f1, f2
+### Test Results (skip if all clean)
+| Task | Command | Passed | Failed | Skipped |
 ### Review Detail (per task with findings)
 | # | Source | Severity | Finding | Disposition | Detail |
-|---|--------|----------|---------|-------------|--------|
+### Deferred Items (skip if none)
+| # | Task | Severity | Finding | Disposition | Reason |
 ### Summary
 - Files changed / Commits / Architect consulted / Avg rounds / Findings / Deferred
 ### Commit Log
-- hash: Task N - [description]
+- hash: Task N - description
 ```
 
 ### C-3: Verify
