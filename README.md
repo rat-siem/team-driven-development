@@ -104,7 +104,7 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 
 ### Phase C: Post-delegate
 1. Collect all results
-2. Generate **completion report** with per-task review detail (findings, dispositions, deferred items with reasons)
+2. Generate **completion report** with implementation summary (what was built per task), test results, per-task review detail (findings, dispositions), and deferred items with reasons
 3. Verify all tasks complete
 
 ## Installation
