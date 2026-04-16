@@ -131,7 +131,7 @@ Skip Phases A–C. Lead implements directly.
 **Flow:**
 1. Execute tasks sequentially. TDD maintained. Follow existing `guidelines/{domain}.md`.
 2. Commit after each task.
-3. Dispatch Reviewer on full diff (base SHA → HEAD). Template: `./prompts/reviewer-prompt.md`.
+3. Dispatch Reviewer on full diff (base SHA → HEAD). Template: `./prompts/reviewer-prompt.md`. **Mandatory — never skip.**
 4. APPROVE → brief summary. REQUEST_CHANGES → fix, recommit, re-dispatch (max 2 rounds → escalate).
 
 **Completion Report:**
@@ -204,6 +204,8 @@ Team: Lead (orchestration), Workers: N, Reviewer: [profiles], Architect: [tasks 
 ```
 
 ## Phase B: Delegate
+
+**Review is mandatory.** Every task — Full and Lite — dispatches a Reviewer before cherry-pick. No exceptions.
 
 Execute in dependency order. Parallelize independent tasks (up to 2 Workers, each in own worktree, never sharing files). Cherry-pick in plan order.
 
@@ -302,19 +304,3 @@ Clean up all? [Yes / No / Select]
 
 Skip only when no session worktrees exist.
 
-## Red Flags
-
-**Never (Full Mode):** Implement on main without consent. Skip review. Let Lead write code. Dispatch with unresolved dependencies. Parallelize shared-file tasks. Ignore BLOCKED/NEEDS_CONTEXT. Accept REQUEST_CHANGES without fixes. Skip Sprint Contracts. Let Architect implement. Cherry-pick before review.
-
-**Never (Lite Mode):** Skip Reviewer. Exceed 2 rounds without escalating. Use Lite if user declined proposal.
-
-**Worker questions:** Answer completely first. **Review issues:** Fix and re-review. **Architect/Worker disagree:** Lead mediates per plan.
-
-## Integration
-
-- **quick-plan** — generates spec + plan for this skill
-- **superpowers:writing-plans** — creates plans this skill executes
-- **superpowers:using-git-worktrees** — Worker worktree isolation
-- **superpowers:test-driven-development** — Workers follow TDD
-- **superpowers:finishing-a-development-branch** — after completion
-- Alternative: **superpowers:subagent-driven-development** — simpler single-role execution
