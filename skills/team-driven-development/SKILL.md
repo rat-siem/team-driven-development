@@ -280,7 +280,7 @@ git commit -m "<task description>"
 ## Phase C: Post-delegate
 
 ### C-1: Collect Results
-Gather commit hashes, file changes, test results.
+Gather commit hashes, file changes, test results, implementation summaries, deferred details (from B-3).
 
 ### C-2: Completion Report
 ```markdown
