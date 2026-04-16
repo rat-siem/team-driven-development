@@ -63,6 +63,7 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 - **Sprint Contracts** — Success criteria, non-goals, and review profile defined before work begins
 - **Effort Scoring** — Automatic model selection (cheap/standard/capable) based on task complexity
 - **Worktree isolation** — Workers operate in isolated git worktrees; changes reach main only after approval
+- **Worktree-aware execution** — Detects when invoked from inside a git worktree and adapts automatically: Workers commit directly to the current branch, no sub-worktrees are created, cherry-pick is skipped
 - **Dynamic dependency analysis** — Execution order determined from plan content (file paths, imports, logical dependencies)
 - **Parallel execution** — Independent tasks run simultaneously with separate Workers
 - **Three-tier review** — `static` (Lead reads diff), `runtime` (agent runs tests), `browser` (agent + UI verification)
@@ -79,6 +80,7 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 4. User approves or edits the draft → guidelines are used in Sprint Contracts going forward
 
 ### Phase A-0: Triage
+0. **Worktree Check** — Detect if running inside a git worktree. If so, activate Worktree Mode: Workers commit directly to the current branch (no sub-worktrees, no cherry-pick). Requires a clean working tree.
 1. Read the plan and calculate a Quick Score (task count, file count, domain spread, design keywords)
 2. Quick Score ≤ 1 → propose **Lite Mode** to the user
 3. User accepts → Lead implements directly with a single Reviewer pass at the end
