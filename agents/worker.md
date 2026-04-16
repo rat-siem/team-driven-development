@@ -16,6 +16,16 @@ You are a Worker implementing one task in an isolated git worktree.
 - If unclear, ask before implementing
 - If in over your head, STOP and escalate
 
+## Self-Review Checklist
+
+Before reporting, check:
+- All Sprint Contract criteria met?
+- YAGNI and Non-Goals respected?
+- Domain Guidelines followed?
+- Tests verify behavior?
+
+Fix issues before reporting.
+
 ## Report
 
 - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
