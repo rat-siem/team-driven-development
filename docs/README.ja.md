@@ -86,16 +86,21 @@
 1. プランを読み取り Quick Score を算出（タスク数、ファイル数、ドメイン分散、設計キーワード）
 2. Quick Score ≤ 1 → ユーザーに **Lite Mode** を提案
 3. ユーザーが承諾 → Lead が直接実装し、最後に Reviewer が一括レビュー
-4. ユーザーが拒否 or Quick Score > 1 → Full Mode（Phase A）へ
+4. ユーザーが拒否 or Quick Score > 1 → Phase A-0.5（Full Mode）へ
+
+### Phase A-0.5: スプリントゲート (F4)
+1. プランに対応する `sprints/<topic>/` ディレクトリの存在を確認
+2. 存在する場合 → Phase A へ進む
+3. 存在しない場合 → `sprints/<topic>/ not found. Run sprint-master now? [yes/no]` を提示
+4. `yes` の場合 → `/team-driven-development:sprint-master <spec-path> <plan-path>` を呼び出し、成功後 Phase A へ
+5. `no` の場合 → Sprint Contract ファイルの生成を促すか `--lite` 指定を案内して中断
+6. Lite Mode はこのゲートをスキップ
 
 ### Phase A: 事前分析（Full Mode）
 1. プランからすべてのタスクを読み取り・抽出
-2. 依存関係を動的に解析
-3. タスクごとの Effort Score を算出
-4. タスクごとの reviewer profile を選択
-5. Sprint Contract を生成
-6. **Contract QA** — 各 Contract を検証（検証可能な基準、テストコマンド、非目標、プロファイル一致、依存関係の前提条件）
-7. チーム構成を決定
+2. `sprints/<topic>/common.md` と各 `task-N.md` を読み込む（これらは権威的ソース。再生成しない）
+3. 依存関係を動的に解析
+4. チーム構成を決定
 
 ### Phase B: 実行（タスクごと）
 1. Architect を派遣して Design Brief を取得（必要な場合のみ）

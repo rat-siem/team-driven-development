@@ -87,16 +87,21 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 1. Read the plan and calculate a Quick Score (task count, file count, domain spread, design keywords)
 2. Quick Score ≤ 1 → propose **Lite Mode** to the user
 3. User accepts → Lead implements directly with a single Reviewer pass at the end
-4. User declines or Quick Score > 1 → proceed to Full Mode (Phase A)
+4. User declines or Quick Score > 1 → proceed to Phase A-0.5 (Full Mode)
+
+### Phase A-0.5: Sprints Gate (F4)
+1. Check that `sprints/<topic>/` exists for the plan
+2. If present → proceed to Phase A
+3. If missing → prompt: `sprints/<topic>/ not found. Run sprint-master now? [yes/no]`
+4. On `yes` → invoke `/team-driven-development:sprint-master <spec-path> <plan-path>`, then proceed to Phase A
+5. On `no` → abort with guidance to generate Sprint Contract files or use `--lite`
+6. Lite Mode skips this gate
 
 ### Phase A: Pre-delegate (Full Mode)
 1. Read and extract all tasks from the plan
-2. Analyze dependencies dynamically
-3. Score effort per task
-4. Select reviewer profile per task
-5. Generate Sprint Contracts
-6. **Contract QA** — Validate each contract (verifiable criteria, test commands, non-goals, profile match, dependency preconditions)
-7. Determine team composition
+2. Read `sprints/<topic>/common.md` and each `task-N.md` (authoritative; do not regenerate)
+3. Analyze dependencies dynamically
+4. Determine team composition
 
 ### Phase B: Delegate (per task)
 1. Dispatch Architect for design brief (if needed)
