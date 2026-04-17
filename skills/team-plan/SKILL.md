@@ -60,7 +60,7 @@ digraph team_plan {
 ```
 
 - Single argument: absolute or repo-relative spec path.
-- Supported equally: direct human invocation and handoff from `deep-brainstorm` or `quick-plan`.
+- Supported equally: direct human invocation and handoff from `deep-brainstorm` or `quick-brainstorm`.
 
 ## Input
 

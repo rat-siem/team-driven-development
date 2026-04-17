@@ -81,8 +81,8 @@ Optimize the content, not the English — abbreviations only where unambiguous.
 ## Terminology
 
 - **Skill**: markdown in `skills/<name>/SKILL.md`, invoked `/<name>`.
-- **Plan**: output of `team-plan` (invoked directly or via `quick-plan` / `deep-brainstorm`).
-- **Spec**: output of `brainstorming` / `deep-brainstorm` / `quick-plan`.
+- **Plan**: output of `team-plan` (invoked directly or via `quick-brainstorm` / `deep-brainstorm`).
+- **Spec**: output of `brainstorming` / `deep-brainstorm` / `quick-brainstorm`.
 - **Lead / Worker / Reviewer / Architect**: team roles (capitalized).
 - **Sprint Contract**: per-task acceptance contract (capitalized).
 

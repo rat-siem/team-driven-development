@@ -267,7 +267,7 @@ Wait for approval, then hand off.
 ## Error Handling
 
 - **User dismisses all counter-proposals** — record each as Declined in Decision Log. Don't loop. Proceed with user's direction.
-- **User defers** ("either is fine"/"up to you") — mirror `quick-plan`: pick the most comprehensive option, record as Deferred decision with reasoning, proceed.
+- **User defers** ("either is fine"/"up to you") — mirror `quick-brainstorm`: pick the most comprehensive option, record as Deferred decision with reasoning, proceed.
 - **Subagent fails twice** — surface verbatim; no third automated round.
 - **User skips ahead** ("just write the spec") — mark remaining items as Deferred, proceed. User retains control.
 - **User pivots mid-skill** — mark current items `N/A` with reason, reset to Phase 1, announce reset, continue.
@@ -275,7 +275,7 @@ Wait for approval, then hand off.
 ## Integration
 
 - **Replaces**: `brainstorming` for vague/high-stakes cases.
-- **Coexists with**: `quick-plan` (requirements already clear).
+- **Coexists with**: `quick-brainstorm` (requirements already clear).
 - **Hands off to**: `team-plan` after approval.
 - **Downstream**: plans executed by `team-driven-development`. Workers/Reviewers consume the Decision Log.
 

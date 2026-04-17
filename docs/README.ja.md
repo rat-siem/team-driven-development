@@ -55,7 +55,7 @@
 
 ## 主な機能
 
-- **Quick Plan** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。`/quick-plan` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
+- **Quick Brainstorm** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。`/quick-brainstorm` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
 - **Solo Review** — Reviewer エージェントによる単体コードレビュー。レビュー対象を自動検出（ステージ済み、未コミット、ブランチ diff）し、基準を適応（Sprint Contract → プラン派生 → 汎用）して構造化された判定を出力。`/solo-review` でフルチームワークフローなしにレビューを実行。
 - **適応的プロセス選択** — シンプルなプランには Lite Mode を提案、複雑なプランにはフルチームプロセスを使用。`--lite` / `--full` でトリアージをスキップしてモードを直接選択可能。
 - **動的チーム編成** — タスクの複雑度と種類に応じてロールを割り当て
@@ -151,13 +151,13 @@ claude plugin update team-driven-development
 
 [Superpowers](https://github.com/obra/superpowers) と組み合わせて使うのが最適ですが、単体でも使用できます。
 
-### Quick Plan と併用（自己完結）
+### Quick Brainstorm と併用（自己完結）
 
 ```
-/quick-plan <タスクの説明> → team-driven-development
+/quick-brainstorm <タスクの説明> → team-driven-development
 ```
 
-`quick-plan` スキルは最小限の対話で spec と plan を生成します — superpowers への依存なし。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-plan を提案します。
+`quick-brainstorm` スキルは最小限の対話で spec と plan を生成します — superpowers への依存なし。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-brainstorm を提案します。
 
 ### Solo Review（単体レビュー）
 
@@ -246,7 +246,7 @@ def test_user_creation():
 
 ## 設計ノート: 委任時の意図的な YAGNI 違反
 
-quick-plan の質問フェーズでユーザーが判断を委任した場合（「どっちでもいい」「おまかせ」等）、このスキルは意図的に YAGNI 原則に違反します。最小限/保守的な選択肢を選ぶ代わりに、すべての潜在的要件を包括的に満たす最善のアプローチを選択します — 最小解釈よりもスコープが広がる場合であっても。
+quick-brainstorm の質問フェーズでユーザーが判断を委任した場合（「どっちでもいい」「おまかせ」等）、このスキルは意図的に YAGNI 原則に違反します。最小限/保守的な選択肢を選ぶ代わりに、すべての潜在的要件を包括的に満たす最善のアプローチを選択します — 最小解釈よりもスコープが広がる場合であっても。
 
 これは明確かつ意図的な設計判断です。理由：ユーザーが判断を委任するとき、エージェントに最強の設計を期待しています。ギャップを残す狭いプランは、エッジケースをカバーするやや広いプランよりも劣ります。委任された判断とその理由は、透明性のため spec に記録されます。
 

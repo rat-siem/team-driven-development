@@ -11,7 +11,7 @@ Execute implementation plans by orchestrating specialized subagents. The Lead (y
 
 ## When to Use
 
-You have an implementation plan to execute. No plan → suggest the `quick-plan` skill first. Simple plans automatically trigger Lite Mode suggestion.
+You have an implementation plan to execute. No plan → suggest the `quick-brainstorm` skill first. Simple plans automatically trigger Lite Mode suggestion.
 
 ## Arguments
 
@@ -19,7 +19,7 @@ You have an implementation plan to execute. No plan → suggest the `quick-plan`
 - `--lite` → skip triage, use Lite Mode. Warn if Quick Score > 1.
 - `--full` → skip triage, use Full Mode.
 
-**No plan available:** Suggest `quick-plan` skill. If accepted, invoke with the user's original request as argument. Capture the user's verbatim message before searching for a plan file — this is the `original_request`. Include any additional context (file paths, errors, descriptions) the user provided.
+**No plan available:** Suggest `quick-brainstorm` skill. If accepted, invoke with the user's original request as argument. Capture the user's verbatim message before searching for a plan file — this is the `original_request`. Include any additional context (file paths, errors, descriptions) the user provided.
 
 ## The Team
 

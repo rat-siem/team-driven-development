@@ -56,7 +56,7 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 
 ## Key Features
 
-- **Quick Plan** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Use `/quick-plan` or let team-driven-development suggest it when no plan exists.
+- **Quick Brainstorm** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Use `/quick-brainstorm` or let team-driven-development suggest it when no plan exists.
 - **Solo Review** — Standalone code review using the Reviewer agent. Auto-detects review target (staged, uncommitted, or branch diff), adapts criteria (Sprint Contract → plan-derived → generic), and produces structured verdicts. Use `/solo-review` for on-demand review without the full team workflow.
 - **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process. Use `--lite` or `--full` to skip triage and select mode directly.
 - **Dynamic team composition** — Roles assigned per task based on complexity and type
@@ -152,13 +152,13 @@ claude plugin update team-driven-development
 
 This plugin works best with [Superpowers](https://github.com/obra/superpowers) but can be used standalone.
 
-### With Quick Plan (self-contained)
+### With Quick Brainstorm (self-contained)
 
 ```
-/quick-plan <task description> → team-driven-development
+/quick-brainstorm <task description> → team-driven-development
 ```
 
-The `quick-plan` skill generates a spec and plan with minimal dialogue — no superpowers dependency needed. When the plan is ready, it offers to hand off directly to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-plan automatically.
+The `quick-brainstorm` skill generates a spec and plan with minimal dialogue — no superpowers dependency needed. When the plan is ready, it offers to hand off directly to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-brainstorm automatically.
 
 ### Solo Review (standalone)
 
@@ -247,7 +247,7 @@ Scoring factors: file count, directory risk, keywords, cross-cutting concerns, n
 
 ## Design Note: Intentional YAGNI Violation on Deferral
 
-When a user defers a decision during quick-plan's clarification phase ("either is fine", "I'll leave it to you"), the skill deliberately violates the YAGNI principle. Instead of choosing the minimal/conservative option, it selects the most comprehensive approach that fully satisfies all potential requirements — even if this results in broader scope than the minimal interpretation.
+When a user defers a decision during quick-brainstorm's clarification phase ("either is fine", "I'll leave it to you"), the skill deliberately violates the YAGNI principle. Instead of choosing the minimal/conservative option, it selects the most comprehensive approach that fully satisfies all potential requirements — even if this results in broader scope than the minimal interpretation.
 
 This is an explicit, intentional design choice. The rationale: when a user delegates a decision, they are trusting the agent to produce the strongest possible design. A narrow plan that leaves gaps is worse than a slightly broader plan that covers edge cases. The deferred decision and reasoning are recorded in the spec for transparency.
 
