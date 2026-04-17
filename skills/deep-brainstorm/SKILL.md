@@ -171,4 +171,62 @@ No surfaced concern is silently dropped. This makes Claude co-responsible for co
 
 **When to surface:** only concerns that block design. Implementation details (library choice, etc.) belong in the plan. >2 per phase = scope creep warning.
 
+## Anti-Patterns
+
+1. **Checklist theater** — asking to tick boxes. If you can't articulate what info you need, don't ask.
+2. **Contrarianism** — alternatives without motivation. Every alternative needs an explicit reason it may beat the current direction.
+3. **Scope creep via surfacing** — surface only what blocks design. Not implementation details, not nice-to-haves.
+4. **Question bombing** — >1 question per turn. Pick the most important; queue the rest.
+5. **Premature design** — designing before owned items resolved. Hard-gated.
+6. **Review laundering** — accepting `PASS` without reading observations. Reviewers approve with notes; read them.
+
+## Extended Spec Format
+
+Save to: `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`.
+
+Adds three sections over brainstorming spec: **Decision Log**, **Unresolved Items**, **Checklist Snapshot**.
+
+### Spec Structure
+
+````markdown
+# [Feature Name] Design
+
+## Overview
+[What + why — 2-3 sentences]
+
+## Motivation
+[Why now — bullets]
+
+## Design
+### [Component/decision sections, scaled to complexity]
+### Error Handling
+### Testing Strategy
+
+## File Changes
+[Table: File / Status / Purpose]
+
+---
+
+## Decision Log
+
+### Decision N: [topic]
+- **Alternatives considered**: [A / B / C]
+- **Chosen**: [option]
+- **Reasoning**: [why chosen beats rejected]
+- **Declined concerns**: [surfaced items the user dismissed, with reason]
+
+## Unresolved Items
+- [ ] [deferred item] — must resolve before implementation
+
+## Checklist Snapshot
+| # | Item | Status | Notes |
+|---|---|---|---|
+| 1 | Purpose | confirmed | ... |
+| ... | ... | ... | ... |
+````
+
+- **Decision Log**: captures Challenge-phase thinking. Auditable by downstream Workers/Reviewers.
+- **Unresolved Items**: deferred decisions made explicit. Downstream skills can re-surface.
+- **Checklist Snapshot**: one-glance audit of what was considered.
+
 <!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->
