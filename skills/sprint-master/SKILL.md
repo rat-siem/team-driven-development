@@ -173,3 +173,13 @@ Mechanical pass before writing files:
 6. **Path traversal guard** — all write targets resolve to `sprints/<topic>/` within the repo root. Reject absolute paths, `..` segments, and any path escaping the target directory.
 
 Fix findings in place. Max two retry rounds. On third failure, surface findings verbatim to the caller and do not write files.
+
+## Error Handling
+
+- **Spec file missing / unreadable:** stop. Emit `Spec file not found: <path>`. No partial writes.
+- **Plan file missing / unreadable:** stop. Emit `Plan file not found: <path>`. No partial writes.
+- **Plan has zero tasks:** stop. Emit `No tasks found in plan: <path>`. No partial writes.
+- **Path traversal attempt in derived target:** stop. Emit `Invalid target path: <path>`. No writes.
+- **Secrets detected:** redact with `<REDACTED>` in output files, add a warning at the top of `common.md`, continue. Do not modify the spec or plan.
+- **Self-review fails after two retry rounds:** surface findings verbatim to the caller. Do not write files.
+- **Partial write due to unexpected error:** `sprints/<topic>/` may contain some files but not all. Operation is idempotent — re-run overwrites deterministically.
