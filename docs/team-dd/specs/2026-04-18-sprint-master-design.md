@@ -164,6 +164,16 @@ Markdown-only skill — testing is manual and comparative.
 - **Integration test** — run `deep-brainstorm` → `team-plan` → `sprint-master` end-to-end on a small fixture. Confirm `team-driven-development` can execute the resulting plan without any manual contract authoring step.
 - **Idempotency test** — run `sprint-master` twice in a row on identical inputs. Verify the second run produces byte-identical outputs.
 
+## Sprint Contract
+
+> Bootstrap-only: this section exists to satisfy the current `team-plan` gate while `sprint-master` itself is being implemented. Once `sprint-master` lands, specs no longer embed this section; the content below becomes historical residue and has no runtime effect.
+
+- Profile: static
+- Shared Criteria:
+  - All new and modified files follow the English-only policy in `CLAUDE.md`.
+  - A-3 and A-4 rulesets are transcribed into `sprint-master` without paraphrase (R3 mitigation).
+  - Every task completes with `guidelines/writing.md` tone and structure rules respected.
+
 ## File Changes
 
 | File | Status | Purpose |
