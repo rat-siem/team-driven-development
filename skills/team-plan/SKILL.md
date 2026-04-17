@@ -54,3 +54,24 @@ digraph team_plan {
     "User approves plan?" -> "Propose execution" [label="yes"];
 }
 ```
+
+## Invocation
+
+```
+/team-driven-development:team-plan <spec-path>
+```
+
+- Single argument: absolute or repo-relative spec path.
+- Supported equally: direct human invocation and handoff from `deep-brainstorm` or `quick-plan`.
+
+## Input
+
+- Spec markdown at the provided path.
+- MUST contain `## Sprint Contract` (case-insensitive, level-2 heading).
+- Inside that section, MUST contain a `Profile` field whose value is `static`, `runtime`, or `browser`.
+
+## Output
+
+- Single plan file at `docs/team-dd/plans/YYYY-MM-DD-<topic>.md`.
+- `<topic>` = spec filename with the leading `YYYY-MM-DD-` and trailing `-design` removed.
+- English only. Translation files (`docs/team-dd/plans/YYYY-MM-DD-<topic>.<lang>.md`) are created only when the user requests a translation during confirmation.
