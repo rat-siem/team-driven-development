@@ -116,4 +116,59 @@ Probe Risks / Security / NFR. Status line required.
 
 Owned items: 8 Risks, 9 Security, 10 NFR.
 
+## Checklist and Termination Gate
+
+10-item floor; extendable via Surfaced Concerns. Each item: `unknown` / `draft` / `confirmed` / `N/A`.
+
+| # | Item | Phase |
+|---|---|---|
+| 1 | Purpose | Distill |
+| 2 | Success criteria | Distill |
+| 3 | Scope boundaries | Distill |
+| 4 | Users / stakeholders | Distill |
+| 5 | Alternatives considered | Challenge |
+| 6 | Assumptions | Challenge |
+| 7 | Major constraints | Challenge |
+| 8 | Risks | Harden |
+| 9 | Security | Harden |
+| 10 | NFR (performance, reliability) | Harden |
+
+### Phase Gate
+
+Phase ends when every owned item is `confirmed` or `N/A`. No advancement otherwise.
+
+### Final Gate
+
+After all ten base items + Surfaced Concerns resolved, present design for user approval. Explicit approval terminates. No spec file before this.
+
+### Confidence Signal (internal only)
+
+Self-rate confidence per unresolved item each turn. Use the **lowest-confidence item** to pick the next question. **Never a gate** — prioritization only. LLM self-confidence is miscalibrated; don't treat confidence as correctness.
+
+### Status Line
+
+Every turn starts:
+
+```
+[Phase <N> <name> | Unresolved: <item numbers> | Added: <surfaced or none>]
+```
+
+## Surfaced Concerns
+
+The 10-item list is a floor. Raise any additional concern blocking design as a Surfaced Concern:
+
+```
+⚠ Surfaced concern: <title> — <why it matters>. Add to checklist? (**Add / Decline / Defer**)
+```
+
+Route the response:
+
+- **Add** — becomes item #11+, must reach `confirmed` before owning phase closes. Assign to the matching phase (or current if ambiguous).
+- **Decline** — record in Decision Log → Declined concerns with reason.
+- **Defer** — record in Unresolved Items (blocks implementation).
+
+No surfaced concern is silently dropped. This makes Claude co-responsible for coverage.
+
+**When to surface:** only concerns that block design. Implementation details (library choice, etc.) belong in the plan. >2 per phase = scope creep warning.
+
 <!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->
