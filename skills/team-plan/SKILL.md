@@ -176,24 +176,8 @@ Fix findings inline. Do not dispatch a subagent.
 
 ## User Plan Gate
 
-> "Plan written and committed to `<path>`. Please review — any changes before we proceed?"
-
-Wait for the user response. Revise if requested.
+Ask `Plan saved to <path>. Any changes before we proceed?`. Revise on request.
 
 ## Execution Handoff
 
-After plan confirmation:
-
-> **Plan complete and saved to `<path>`. Execute with team-driven-development?**
-> - **Yes** — Invoke team-driven-development to execute the plan
-> - **No** — End here (plan is saved for later)
-
-If Yes, invoke the `team-driven-development` skill. Do NOT invoke any superpowers skill.
-
-## Key Principles
-
-- **Inline what executes; reference what explains.** Workers need code and commands at hand; rationale belongs in the spec.
-- **Sprint Contract as common plus delta.** Reviewers decide from the plan alone.
-- **Fail fast on missing contract.** No interim logic; `sprint-master` is the follow-up.
-- **English-only canonical.** Translation only on explicit user request.
-- **Self-contained.** No dependency on superpowers skills at runtime.
+After approval, ask `Execute with team-driven-development? [yes/no]`. On yes, invoke `team-driven-development`. Do NOT invoke any superpowers skill.
