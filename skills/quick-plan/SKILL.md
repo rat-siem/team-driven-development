@@ -102,9 +102,6 @@ The spec covers the same ground as a brainstorming-produced spec — full qualit
 ### Testing Strategy
 [What to test and how — types of tests, key scenarios]
 
-## Sprint Contract
-[Required by team-plan. Contains `Profile: static | runtime | browser` and Shared Criteria bullets.]
-
 ## File Changes
 [New files, modified files, not modified — table format]
 ```
@@ -117,7 +114,6 @@ After writing the spec, review with fresh eyes:
 2. **Internal consistency** — No contradictions between sections. Architecture matches feature descriptions.
 3. **Scope check** — Focused enough for a single implementation plan. If not, flag for decomposition.
 4. **Ambiguity check** — No requirement interpretable two ways. Pick one and make it explicit.
-5. **Sprint Contract present** — The spec contains a `## Sprint Contract` section with a `Profile` of `static`, `runtime`, or `browser`. team-plan fails fast without this.
 
 Fix issues inline immediately. Then commit and ask the user to confirm.
 
