@@ -107,12 +107,6 @@ The existing line "Simple plans automatically trigger Lite Mode suggestion" (L26
 
 **Impact:** ~5-6 lines net removal (status defs deduplicated into the Report bullet).
 
-### Change 6 — Version bump
-
-**Target:** `.claude-plugin/plugin.json`.
-
-Bump `0.11.1 → 0.11.2` (patch). Rationale: prompt refactor, no behavior change, no breaking change.
-
 ### Error Handling
 
 Prompts are declarative artifacts with no runtime error paths. No error handling changes.
@@ -125,7 +119,8 @@ Prompts are not programmatically testable; verification is manual and evidentiar
 2. **Cross-reference integrity (Change 2):** `agents/reviewer.md:17-25` still contains the Severity table before any SKILL.md edit is made; the new pointer text in SKILL.md names the correct file path.
 3. **SKILL.md structural check (Changes 3, 4):** Open `SKILL.md` in a markdown viewer (or `bat`) and confirm all tables render, the `## Arguments` section still follows the `## When to Use` section, and Phase A-0 `Quick Score → Mode Selection` heading is present.
 4. **Worker prompt smoke test (Change 5):** Invoke `team-driven-development` on a trivial one-file task (e.g., add a README sentence) in Lite Mode skipped, Full Mode path. Confirm Worker dispatches and returns a report with a parsable `Status:` block that uses one of the four labels.
-5. **Version bump check (Change 6):** `.claude-plugin/plugin.json` version field is `"0.11.2"`.
+
+Note: version bump is handled by `scripts/release.sh` and is out of scope for this spec.
 
 ## File Changes
 
@@ -134,7 +129,6 @@ Prompts are not programmatically testable; verification is manual and evidentiar
 | `skills/team-driven-development/sprint-contract-template.md` | **Delete** (orphan, 115 lines) |
 | `skills/team-driven-development/SKILL.md` | Replace digraph (L14-22), merge Quick Score + Mode Selection (L111-127), replace Verdict Rules table with pointer (L264-270) |
 | `agents/worker.md` | Inline Status labels into Report section; delete "Status Definitions" section |
-| `.claude-plugin/plugin.json` | Bump version `0.11.1` → `0.11.2` |
-| Not modified | `templates/sprint-contract-template.md`, `agents/reviewer.md`, `agents/architect.md`, `skills/quick-plan/SKILL.md`, `skills/solo-review/SKILL.md`, all dispatch prompts, all guideline templates, `scripts/*.sh` |
+| Not modified | `templates/sprint-contract-template.md`, `agents/reviewer.md`, `agents/architect.md`, `skills/quick-plan/SKILL.md`, `skills/solo-review/SKILL.md`, all dispatch prompts, all guideline templates, `scripts/*.sh`, `.claude-plugin/plugin.json` (version managed by `scripts/release.sh`) |
 
 **Estimated line reduction:** ~139 lines total (115 + 7 + 8 + 4 + 5).
