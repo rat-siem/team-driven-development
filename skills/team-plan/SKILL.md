@@ -152,3 +152,24 @@ digraph team_plan {
 - The common block lives once, immediately after the plan header.
 - Per-task overrides list deltas only; do not restate the common block.
 - Tasks with no delta omit the `Sprint Contract:` section entirely (absence means "use common as-is").
+
+## Self-Review
+
+Mechanical pass after plan generation, before writing the file:
+
+1. **Placeholder scan** — reject `TBD`, `TODO`, `fill in later`, `implement later`, `handle edge cases appropriately`, or any Step that lacks concrete code/command content. Fix inline.
+2. **Spec coverage** — every spec requirement maps to at least one task. Add missing tasks.
+3. **Type/identifier consistency** — names, paths, and signatures match across tasks.
+4. **Spec ref shape** — every `Spec ref` is a heading anchor. Convert line-range refs or remove them.
+5. **Override consistency** — task-level Sprint Contract deltas do not restate the common block verbatim.
+6. **Secret-like patterns** — redact matches of `AKIA[0-9A-Z]{16}`, `Bearer `, `password=`, `api[_-]?key=` with `<REDACTED>`. Emit a warning line at the top of the plan.
+
+Fix findings inline. Do not dispatch a subagent.
+
+## Error Handling
+
+- **Spec file missing / unreadable:** stop. Emit `Spec file not found: <path>`. Do not create a partial plan.
+- **`## Sprint Contract` section missing:** stop before any write. Emit `Sprint Contract section not found in <path>. Either (1) regenerate the spec via deep-brainstorm, (2) add a "## Sprint Contract" section manually, or (3) wait for the sprint-master follow-up skill.`
+- **`Profile` value not `static`/`runtime`/`browser`:** stop. Emit `Invalid Profile: <value>. Allowed: static, runtime, browser.`
+- **Unfixable contradiction** (task references an identifier no task defines): stop. Report the contradiction; do not write a partial plan.
+- **Secrets detected:** redact in the plan and emit a warning line in the plan header. Do not abort. Do not modify the spec.
