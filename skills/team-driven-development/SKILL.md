@@ -11,18 +11,7 @@ Execute implementation plans by orchestrating specialized subagents. The Lead (y
 
 ## When to Use
 
-```dot
-digraph when_to_use {
-    "Have implementation plan?" [shape=diamond];
-    "team-driven-development" [shape=box];
-    "Suggest quick-plan" [shape=box];
-    "Have implementation plan?" -> "team-driven-development" [label="yes"];
-    "Have implementation plan?" -> "Suggest quick-plan" [label="no"];
-}
-```
-
-- You have an implementation plan to execute
-- Simple plans automatically trigger Lite Mode suggestion
+You have an implementation plan to execute. No plan → suggest the `quick-plan` skill first. Simple plans automatically trigger Lite Mode suggestion.
 
 ## Arguments
 
