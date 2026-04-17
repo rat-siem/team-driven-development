@@ -20,7 +20,7 @@ Do NOT write any implementation code or invoke any execution skill until the use
 3. **Generate plan** — write header, File Structure, tasks.
 4. **Self-review** — run mechanical checks; fix findings inline.
 5. **Write file** — save to target path, report path to caller.
-6. **Invoke sprint-master** — call `/team-driven-development:sprint-master <spec-path> <plan-path>` via the Skill tool. On failure, surface the error plus the re-run command to the user.
+6. **Dispatch sprint-master** — call the `Agent` tool with `subagent_type: "team-driven-development:sprint-master"`, passing `<spec-path>` and `<plan-path>` in the prompt. The agent returns to team-plan on completion. On failure, surface the error plus the re-run command `/team-driven-development:sprint-master <spec-path> <plan-path>`.
 7. **User confirms plan** — wait for approval. Revise on request.
 8. **Propose execution** — offer `team-driven-development` handoff.
 
@@ -35,7 +35,7 @@ digraph team_plan {
     "Issues found?" [shape=diamond];
     "Fix inline" [shape=box];
     "Write file" [shape=box];
-    "Invoke sprint-master" [shape=box];
+    "Dispatch sprint-master" [shape=box];
     "User approves plan?" [shape=diamond];
     "Propose execution" [shape=doublecircle];
 
@@ -46,8 +46,8 @@ digraph team_plan {
     "Issues found?" -> "Fix inline" [label="yes"];
     "Fix inline" -> "Self-review";
     "Issues found?" -> "Write file" [label="no"];
-    "Write file" -> "Invoke sprint-master";
-    "Invoke sprint-master" -> "User approves plan?";
+    "Write file" -> "Dispatch sprint-master";
+    "Dispatch sprint-master" -> "User approves plan?";
     "User approves plan?" -> "Generate plan" [label="revise"];
     "User approves plan?" -> "Propose execution" [label="yes"];
 }
