@@ -88,17 +88,6 @@ digraph team_plan {
 
 ---
 
-## Sprint Contract (Common)
-
-- Profile: static | runtime | browser
-- Shared Criteria:
-  - <criterion 1>
-  - <criterion 2>
-
-> Task-level `Sprint Contract:` sections OVERRIDE these defaults per key.
-
----
-
 ## File Structure
 
 | File | Status | Responsibility |
@@ -115,8 +104,6 @@ digraph team_plan {
 - Test: <path>
 
 **Spec ref:** <spec-path>#<section-heading>
-
-**Sprint Contract:** <task-level delta, one line per overridden key; omit the section entirely when no delta>
 
 - [ ] Step 1: Write the failing test
   ```<lang>
@@ -145,12 +132,6 @@ digraph team_plan {
 - Rationale, Decision Log context, and trade-offs are NEVER inlined. Reference spec sections instead.
 - `Spec ref` MUST be a heading anchor (e.g., `<spec-path>#error-handling`). Line-range refs are rejected in self-review.
 
-## Sprint Contract Override Rules
-
-- The common block lives once, immediately after the plan header.
-- Per-task overrides list deltas only; do not restate the common block.
-- Tasks with no delta omit the `Sprint Contract:` section entirely (absence means "use common as-is").
-
 ## Self-Review
 
 Mechanical pass after plan generation, before writing the file:
@@ -159,8 +140,7 @@ Mechanical pass after plan generation, before writing the file:
 2. **Spec coverage** — every spec requirement maps to at least one task. Add missing tasks.
 3. **Type/identifier consistency** — names, paths, and signatures match across tasks.
 4. **Spec ref shape** — every `Spec ref` is a heading anchor. Convert line-range refs or remove them.
-5. **Override consistency** — task-level Sprint Contract deltas do not restate the common block verbatim.
-6. **Secret-like patterns** — redact matches of `AKIA[0-9A-Z]{16}`, `Bearer `, `password=`, `api[_-]?key=` with `<REDACTED>`. Emit a warning line at the top of the plan.
+5. **Secret-like patterns** — redact matches of `AKIA[0-9A-Z]{16}`, `Bearer `, `password=`, `api[_-]?key=` with `<REDACTED>`. Emit a warning line at the top of the plan.
 
 Fix findings inline. Do not dispatch a subagent.
 
