@@ -1,0 +1,85 @@
+---
+domain: writing
+version: 1
+last_updated: 2026-04-17
+---
+
+# Writing Guidelines
+
+## Token Economy (applies to all files, critical for prompts)
+
+Prompts and skills are re-loaded on every invocation — bytes cost tokens. Write for that cost.
+
+- Omit anything the LLM can infer from context, frontmatter, or adjacent sections.
+- Don't restate the same rule in two places. Pick one canonical location.
+- Prefer shortest unambiguous phrasing. Tables/lists beat prose for enumerations.
+- Don't explain self-evident implications ("so that the test will run correctly").
+- Don't write rationale unless it changes behavior in edge cases.
+- No filler transitions ("Next,", "In summary,", "It's important to note that").
+
+Optimize the content, not the English — abbreviations only where unambiguous.
+
+## Language
+
+- All `.md` files in this repo: English. Exception: `*.ja.md` user-facing translations.
+- Reason: English tokenizes ~2-3x tighter than Japanese; single language across agent-facing files removes ambiguity.
+
+## Tone
+
+- Second person imperative for instructions ("Read the file").
+- Third person for role/mechanism descriptions ("The Lead coordinates...").
+- No hedging in normative sections. Direct statements only.
+- Emojis: status-line markers only (📌 🔍 ❓ ⚠). No decorative emoji.
+
+## Structure
+
+### Skills (`skills/<name>/SKILL.md`)
+
+- Frontmatter: `name` (matches dir) + `description` (≤200 chars, one sentence, triggers invocation).
+- H1 title → one-paragraph overview.
+- `**Announce at start:**` line stating what the skill does.
+- `<HARD-GATE>` block for irreversible gates.
+- `## Checklist` with ordered steps.
+- `## Process Flow` with DOT `digraph` when branching exists.
+
+### Prompts (`skills/<name>/prompts/*.md`)
+
+- H1 names the role.
+- Sections: Role, Input, Criteria (or Task), Output Format, Constraints.
+- Output Format: literal strings in fenced code blocks.
+- Subagent prompts run without conversation context — include only what's needed to execute; skip background the subagent cannot act on.
+
+### Specs (`docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`)
+
+- Required: Overview, Motivation, Design, File Changes.
+- Extended (from `deep-brainstorm`): + Decision Log, Unresolved Items, Checklist Snapshot.
+- File Changes: table with File / Status / Purpose.
+
+### Plans (`docs/team-dd/plans/YYYY-MM-DD-<topic>.md`)
+
+- Start with the `writing-plans` header (Goal / Architecture / Tech Stack).
+- Tasks use `- [ ]` checkbox syntax.
+- Each step includes exact file paths and runnable commands in fenced blocks.
+
+## Formatting
+
+- ATX headings (`#`, `##`, `###`).
+- `-` for unordered lists, `1.` for ordered.
+- Pipe tables with `|---|---|` separators.
+- Fenced code blocks with language tag (`bash`, `markdown`, `dot`, ...).
+- Backticks for paths, commands, identifiers, literal strings.
+- Relative paths for in-repo links.
+
+## Terminology
+
+- **Skill**: markdown in `skills/<name>/SKILL.md`, invoked `/<name>`.
+- **Plan**: output of `writing-plans` / `quick-plan`.
+- **Spec**: output of `brainstorming` / `deep-brainstorm` / `quick-plan`.
+- **Lead / Worker / Reviewer / Architect**: team roles (capitalized).
+- **Sprint Contract**: per-task acceptance contract (capitalized).
+
+## Forbidden
+
+- Placeholders in committed files: `TBD`, `TODO`, `FIXME`, `fill in later`.
+- Language mixing (except `*.ja.md`).
+- Session metadata, internal filenames, secrets.

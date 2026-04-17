@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Create the `deep-brainstorm` skill — a rigorous variant of brainstorming that distills vague requirements through Distill/Challenge/Harden phases, gated by a 10-item checklist with dynamic additions, and validated by a subagent reviewer before user approval.
+**Goal:** Create the `deep-brainstorm` skill — a rigorous brainstorming variant that runs Distill/Challenge/Harden phases, gates on a 10-item checklist with dynamic additions, and validates via subagent review before user approval.
 
-**Architecture:** Pure markdown skill (no code). Main entry `skills/deep-brainstorm/SKILL.md` carries the full prompt; a companion prompt at `skills/deep-brainstorm/prompts/reviewer.md` is loaded by the review subagent. Skills are auto-discovered by the plugin loader — no registration changes needed. Validation is grep-based (section presence / required strings), since skills are prompt artifacts rather than executable code.
+**Architecture:** Pure markdown skill. `skills/deep-brainstorm/SKILL.md` is the entry; `skills/deep-brainstorm/prompts/reviewer.md` is loaded by the review subagent. Skills are auto-discovered — no registration changes. Validation is grep-based (section presence / required strings).
 
-**Tech Stack:** Markdown only. Shell (grep) for structural validation.
+**Tech Stack:** Markdown. Shell `grep` for structural validation.
 
 ---
 
@@ -14,10 +14,10 @@
 
 | File | Responsibility |
 |---|---|
-| `skills/deep-brainstorm/SKILL.md` | Main skill definition: frontmatter, flow, three phases, checklist gate, surfaced concerns, anti-patterns, spec template, review pipeline, handoff. |
-| `skills/deep-brainstorm/prompts/reviewer.md` | Subagent reviewer prompt — criteria (10-item coverage, Decision Log soundness, unresolved legitimacy, consistency, ambiguity) and output format (`PASS` / `CHANGES_REQUESTED: [findings]`). |
+| `skills/deep-brainstorm/SKILL.md` | Skill definition: phases, checklist gate, surfaced concerns, anti-patterns, spec template, review pipeline, handoff. |
+| `skills/deep-brainstorm/prompts/reviewer.md` | Subagent reviewer prompt: criteria + output format. |
 
-No other files are created or modified. `plugin.json` auto-discovers skills.
+No other files. `plugin.json` auto-discovers skills.
 
 ---
 
@@ -28,84 +28,74 @@ No other files are created or modified. `plugin.json` auto-discovers skills.
 
 - [ ] **Step 1: Write the validation test**
 
-Create a verification script that confirms the reviewer prompt has required sections. Save it inline as a shell one-liner — no test file needed.
-
-Plan test: after creating the file, run this command:
+After file creation, run:
 ```bash
 grep -c "^## " skills/deep-brainstorm/prompts/reviewer.md
 ```
-Expected: at least `4` (Role / Criteria / Output Format / Constraints headings).
+Expected: `5` (Role, Input, Criteria, Output Format, Constraints).
 
 - [ ] **Step 2: Run the test to confirm it fails**
 
-Run: `grep -c "^## " skills/deep-brainstorm/prompts/reviewer.md 2>&1 || echo "FAIL: file missing"`
-Expected: `FAIL: file missing` (file not yet created).
+Run: `test -f skills/deep-brainstorm/prompts/reviewer.md || echo "FAIL: file missing"`
+Expected: `FAIL: file missing`.
 
-- [ ] **Step 3: Create the reviewer prompt file**
+- [ ] **Step 3: Create the reviewer prompt**
 
-Write `skills/deep-brainstorm/prompts/reviewer.md` with exactly this content:
+Write `skills/deep-brainstorm/prompts/reviewer.md`:
 
 ```markdown
 # deep-brainstorm Spec Reviewer
 
 ## Role
 
-You are a fresh-eyes reviewer for a spec produced by the `deep-brainstorm` skill. You have no conversation context from the brainstorming session. Read only the spec file and judge it on its own merits. Your job is to catch embedded assumptions, unsupported claims, and coverage gaps that the author could not see.
+Fresh-eyes reviewer for a `deep-brainstorm` spec. No conversation context. Read the spec file and judge it on its own merits. Catch embedded assumptions, unsupported claims, coverage gaps.
 
 ## Input
 
-You will receive the absolute path to a spec file. Read it fully before responding.
+Absolute path to a spec file. Read fully before responding.
 
 ## Criteria
 
-Evaluate the spec against each of these criteria. For every failed criterion, produce a specific finding with a file-location reference.
+For each failed criterion, produce a finding with a section reference.
 
-1. **10-item checklist coverage** — the spec's Checklist Snapshot must list all ten items (Purpose, Success criteria, Scope boundaries, Users/stakeholders, Alternatives considered, Assumptions, Major constraints, Risks, Security, NFR), each with a status of `confirmed` or `N/A`. `unknown` or `draft` states are failures. `N/A` is only acceptable when the spec body justifies why.
-
-2. **Decision Log reasoning soundness** — each Decision Log entry must list alternatives considered, the chosen option, and a reasoning statement that explains why the chosen option beats the alternatives. Reasoning that merely restates the choice ("we chose B because B is better") is a failure.
-
-3. **Unresolved Items legitimacy** — each Unresolved Item must be something that genuinely blocks implementation and was consciously deferred. Trivial TODOs or scope that should have been resolved during brainstorming are failures.
-
-4. **Internal consistency** — no section contradicts another. Architecture matches the feature descriptions. File Changes table matches files referenced in the Design section.
-
-5. **Ambiguity** — no requirement is interpretable two meaningfully different ways. Vague directives like "handle edge cases appropriately" without specification are failures.
-
-6. **Placeholder scan** — no `TBD`, `TODO`, "fill in later", or equivalent placeholder text remains in any section.
+1. **10-item checklist coverage** — Checklist Snapshot lists all ten base items, each `confirmed` or `N/A`. `unknown`/`draft` = fail. `N/A` must be justified in the spec body.
+2. **Decision Log soundness** — each entry lists alternatives, choice, reasoning. Reasoning that restates the choice = fail.
+3. **Unresolved Items legitimacy** — each item genuinely blocks implementation and was consciously deferred. Trivial TODOs = fail.
+4. **Internal consistency** — no section contradicts another. File Changes matches files referenced in Design.
+5. **Ambiguity** — no requirement interpretable two ways. Vague directives (e.g., "handle edge cases appropriately") = fail.
+6. **Placeholders** — no `TBD`/`TODO`/`fill in later`/similar.
 
 ## Output Format
 
-Respond with exactly one of the following formats.
+Output exactly one format.
 
-If the spec passes all criteria:
-
+Pass:
 ```
 PASS
 ```
 
-If any criterion fails:
-
+Fail:
 ```
 CHANGES_REQUESTED:
-- [criterion-number] [finding with section/line reference]
-- [criterion-number] [finding with section/line reference]
-...
+- [criterion-number] [finding with section reference]
+- [criterion-number] [finding with section reference]
 ```
 
 ## Constraints
 
-- Do not propose solutions — only identify problems.
-- Do not comment on writing style unless it causes ambiguity.
-- Do not request additional information from the user; work with the spec as given.
-- Keep each finding to a single sentence where possible.
+- Identify problems only; no solutions.
+- Skip style comments unless they cause ambiguity.
+- No questions to the user.
+- One sentence per finding.
 ```
 
 - [ ] **Step 4: Run the test to confirm it passes**
 
-Run: `grep -c "^## " skills/deep-brainstorm/prompts/reviewer.md`
-Expected: `5` (Role, Input, Criteria, Output Format, Constraints).
-
-Run: `grep "^# deep-brainstorm Spec Reviewer" skills/deep-brainstorm/prompts/reviewer.md`
-Expected: matches the H1 line.
+```bash
+grep -c "^## " skills/deep-brainstorm/prompts/reviewer.md
+grep -q "^# deep-brainstorm Spec Reviewer$" skills/deep-brainstorm/prompts/reviewer.md && echo OK
+```
+Expected: `5`, `OK`.
 
 - [ ] **Step 5: Commit**
 
@@ -123,7 +113,6 @@ git commit -m "feat(deep-brainstorm): add subagent reviewer prompt"
 
 - [ ] **Step 1: Write the validation test**
 
-Plan tests (run after file creation):
 ```bash
 grep -q "^name: deep-brainstorm$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "HARD-GATE" skills/deep-brainstorm/SKILL.md && echo OK
@@ -136,42 +125,42 @@ Expected: three `OK` lines.
 Run: `test -f skills/deep-brainstorm/SKILL.md || echo "FAIL: file missing"`
 Expected: `FAIL: file missing`.
 
-- [ ] **Step 3: Create SKILL.md with foundation content**
+- [ ] **Step 3: Create SKILL.md foundation**
 
-Write `skills/deep-brainstorm/SKILL.md` with this exact content:
+Write `skills/deep-brainstorm/SKILL.md`:
 
 ````markdown
 ---
 name: deep-brainstorm
-description: Rigorous variant of brainstorming for vague or high-stakes requirements. Distills the idea through Distill/Challenge/Harden phases, gated by a 10-item checklist with dynamic additions, then validates the spec with a subagent reviewer before user approval.
+description: Rigorous variant of brainstorming for vague or high-stakes requirements. Runs Distill/Challenge/Harden phases, gates on a 10-item checklist with dynamic additions, validates via subagent review before user approval.
 ---
 
 # Deep Brainstorm
 
-Take a vague idea and forge it into a fully specified design through a three-phase process: restate and distill, propose counter-options and stress-test, then harden against risk, security, and non-functional concerns. Produce an extended spec with a Decision Log and Unresolved Items, validate it with a fresh-eyes subagent reviewer, and hand off to `writing-plans`.
+Forge a vague idea into a specified design through three phases — Distill, Challenge, Harden. Produce an extended spec with Decision Log and Unresolved Items, validate via fresh-eyes subagent, hand off to `writing-plans`.
 
-Unlike `brainstorming`, this skill pushes back hard, surfaces concerns Claude detects on its own, and replaces self-review with external review. Use it when the requirements are vague, the stakes are high, or you want the decision-making reasoning preserved in the spec.
+Unlike `brainstorming`: stronger pushback, Claude-surfaced concerns, external review instead of self-review. Use for vague or high-stakes requirements, or when decision reasoning must survive into the spec.
 
-**Announce at start:** "I'm using deep-brainstorm to distill the requirements through Distill/Challenge/Harden phases and produce an extended spec."
+**Announce at start:** "I'm using deep-brainstorm to run Distill/Challenge/Harden phases and produce an extended spec."
 
 <HARD-GATE>
-Do NOT invoke any implementation skill, write any code, or scaffold any project until the user has approved the spec. Do NOT advance to the next phase until all owned checklist items are `confirmed` or `N/A`. Do NOT write the spec file until all ten base checklist items are resolved AND the user has approved the presented design.
+No implementation skill, code, or scaffolding until user approves the spec. No phase advancement until owned items are `confirmed`/`N/A`. No spec file until all ten base items resolved AND design approved.
 </HARD-GATE>
 
 ## Checklist
 
-You MUST create a task for each of these items and complete them in order:
+Create a task for each item and complete in order:
 
-1. **Explore project context** — read related files, docs, and recent commits.
-2. **Phase 1 — Distill** — restate, surface ambiguity, establish Purpose / Success criteria / Scope boundaries / Users.
-3. **Phase 2 — Challenge** — present counter-proposals, stress-test, establish Alternatives / Assumptions / Constraints.
-4. **Phase 3 — Harden** — probe Risks / Security / NFR; resolve any Surfaced Concerns.
-5. **Present design sections** — architecture, components, data flow, error handling, testing — approve section-by-section.
-6. **Write extended spec** — save to `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`, commit.
-7. **Light self-review** — placeholder and contradiction scan only (~30 seconds).
-8. **Subagent review** — dispatch fresh reviewer with `prompts/reviewer.md`; revise on `CHANGES_REQUESTED` up to 2 rounds.
-9. **User approves spec** — wait for explicit approval.
-10. **Invoke writing-plans** — hand off for implementation plan.
+1. **Explore context** — related files, docs, recent commits.
+2. **Phase 1 Distill** — restate, surface ambiguity, resolve Purpose / Success criteria / Scope / Users.
+3. **Phase 2 Challenge** — counter-proposals, stress-test, resolve Alternatives / Assumptions / Constraints.
+4. **Phase 3 Harden** — Risks / Security / NFR + Surfaced Concerns.
+5. **Present design** — section-by-section user approval.
+6. **Write extended spec** — `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`, commit.
+7. **Light self-review** — placeholders + obvious contradictions (~30s).
+8. **Subagent review** — dispatch with `prompts/reviewer.md`; revise on `CHANGES_REQUESTED`, max 2 rounds.
+9. **User approves spec**.
+10. **Invoke `writing-plans`**.
 
 ## Process Flow
 
@@ -213,8 +202,8 @@ digraph deep_brainstorm {
     "Review verdict?" -> "Revise spec" [label="CHANGES_REQUESTED (≤2 rounds)"];
     "Revise spec" -> "Subagent review";
     "Review verdict?" -> "User approves spec?" [label="PASS"];
-    "Review verdict?" -> "User approves spec?" [label="2 rounds failed: surface findings"];
-    "User approves spec?" -> "Revise spec" [label="changes requested"];
+    "Review verdict?" -> "User approves spec?" [label="2 rounds failed"];
+    "User approves spec?" -> "Revise spec" [label="changes"];
     "User approves spec?" -> "Invoke writing-plans" [label="approved"];
 }
 ```
@@ -224,30 +213,24 @@ digraph deep_brainstorm {
 
 - [ ] **Step 4: Run the tests to confirm they pass**
 
-```bash
-grep -q "^name: deep-brainstorm$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "HARD-GATE" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "digraph" skills/deep-brainstorm/SKILL.md && echo OK
-```
-Expected: three `OK` lines.
+Same three commands from Step 1. Expected: three `OK` lines.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add skills/deep-brainstorm/SKILL.md
-git commit -m "feat(deep-brainstorm): add SKILL.md foundation (frontmatter, checklist, process flow)"
+git commit -m "feat(deep-brainstorm): add SKILL.md foundation"
 ```
 
 ---
 
-## Task 3: Three Phases section (Distill, Challenge, Harden)
+## Task 3: Three Phases section
 
 **Files:**
 - Modify: `skills/deep-brainstorm/SKILL.md`
 
 - [ ] **Step 1: Write the validation test**
 
-Plan tests:
 ```bash
 grep -q "^### Phase 1 — Distill$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^### Phase 2 — Challenge$" skills/deep-brainstorm/SKILL.md && echo OK
@@ -258,73 +241,67 @@ Expected: four `OK` lines.
 
 - [ ] **Step 2: Run the test to confirm it fails**
 
-Run the four commands above. All four should produce no `OK` line (the headings and template do not yet exist).
+Same commands. Missing headings produce no output.
 
-- [ ] **Step 3: Append the Three Phases section**
+- [ ] **Step 3: Append Three Phases**
 
-Use Edit to replace the marker `<!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->` with the following content (keeping the marker at the end for later tasks):
+Use Edit to replace `<!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->` with:
 
 ```markdown
 ## Three Phases
 
-Phase progression is gated. A phase ends only when all its owned checklist items are `confirmed` or `N/A`. Users can explicitly mark an item `N/A` to skip it; record the reason in the Decision Log.
+Phase ends when owned items are `confirmed` or `N/A`. `N/A` reasons go in the Decision Log.
 
 ### Phase 1 — Distill
 
-Establish Purpose, Success criteria, Scope boundaries, Users/stakeholders.
+Resolve Purpose, Success criteria, Scope boundaries, Users/stakeholders.
 
-**Turn format: structured three-part (strict).** Every turn in Phase 1 follows this template exactly:
+**Turn format: structured three-part (strict).**
 
 ```
-[Phase 1 Distill | Unresolved: <item numbers> | Added: <surfaced items or none>]
+[Phase 1 Distill | Unresolved: <item numbers> | Added: <surfaced or none>]
 
-📌 Understanding: <one- or two-sentence restatement of what you've understood so far>
-🔍 Gaps: <2–3 bullet points of ambiguity or missing context>
-❓ Question: <one focused question, multiple-choice preferred>
+📌 Understanding: <1-2 sentence restatement>
+🔍 Gaps: <2-3 bullet points>
+❓ Question: <one question, multiple-choice preferred>
 ```
 
-The status line on top is required every turn. The 📌/🔍/❓ template is required until all Phase 1 items are `confirmed` or `N/A`.
+Status line required every turn. 📌/🔍/❓ required until Phase 1 items confirmed.
 
 Owned items: 1 Purpose, 2 Success criteria, 3 Scope boundaries, 4 Users/stakeholders.
 
 ### Phase 2 — Challenge
 
-Surface counter-proposals, stress-test assumptions, pin down major constraints.
+Counter-proposals, stress-tests, resolve Alternatives / Assumptions / Constraints.
 
-**Turn format: dynamic, counter-proposal-centric.** The status line is still required every turn, but the 📌/🔍/❓ template becomes optional. Each counter-proposal must be motivated by a real concern — not contrarianism (see Anti-Patterns).
+**Turn format: dynamic, counter-proposal-centric.** Status line required; 📌/🔍/❓ optional. Counter-proposals need real motivation (see Anti-Patterns).
 
-Present 2–3 alternatives per major decision with explicit trade-offs and a recommended option with reasoning. Record everything discussed here in the eventual spec's Decision Log, whether the user accepts your recommendation or not.
+Present 2–3 alternatives per major decision with trade-offs and a recommended option. Record everything in the Decision Log — user acceptance doesn't matter.
 
 Owned items: 5 Alternatives considered, 6 Assumptions, 7 Major constraints.
 
 ### Phase 3 — Harden
 
-Probe remaining risk, security, and non-functional concerns. Status line still required.
+Probe Risks / Security / NFR. Status line required.
 
-**Turn format: dynamic, targeted probes at unresolved items.** May include proposal-style confirmation ("I'll proceed with X unless you object"). Use the lowest-confidence item (see Confidence Signal) to pick the next probe.
+**Turn format: dynamic.** Targeted probes at unresolved items; proposal-style confirmation OK ("I'll proceed with X unless you object"). Use lowest-confidence item (see Confidence Signal) to pick the next probe.
 
 Owned items: 8 Risks, 9 Security, 10 NFR.
 
 <!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->
 ```
 
-Use the Edit tool: `old_string` is `<!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->`, `new_string` is the content block above ending with a fresh `<!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->` marker.
+Edit: `old_string` is `<!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->`, `new_string` is the content above ending with a fresh marker.
 
 - [ ] **Step 4: Run the tests to confirm they pass**
 
-```bash
-grep -q "^### Phase 1 — Distill$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "^### Phase 2 — Challenge$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "^### Phase 3 — Harden$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "📌 Understanding" skills/deep-brainstorm/SKILL.md && echo OK
-```
-Expected: four `OK` lines.
+Same four commands. Expected: four `OK` lines.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add skills/deep-brainstorm/SKILL.md
-git commit -m "feat(deep-brainstorm): add Three Phases section with turn formats"
+git commit -m "feat(deep-brainstorm): add Three Phases"
 ```
 
 ---
@@ -336,27 +313,26 @@ git commit -m "feat(deep-brainstorm): add Three Phases section with turn formats
 
 - [ ] **Step 1: Write the validation test**
 
-Plan tests:
 ```bash
 grep -c "^| [0-9]\+ | " skills/deep-brainstorm/SKILL.md
 grep -q "Surfaced Concerns" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "Confidence Signal" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "Final Gate" skills/deep-brainstorm/SKILL.md && echo OK
 ```
-Expected: first command prints `10` (ten checklist rows); three `OK` lines.
+Expected: `10`, three `OK` lines.
 
 - [ ] **Step 2: Run the test to confirm it fails**
 
-Same four commands. First prints `0`; the three `OK` commands print nothing.
+Same commands. Expected: `0` and no OK lines.
 
-- [ ] **Step 3: Append the Checklist/Gate/Surfaced Concerns section**
+- [ ] **Step 3: Append Checklist + Gate + Surfaced Concerns**
 
-Use Edit to replace the marker `<!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->` with:
+Replace the marker with:
 
 ```markdown
 ## Checklist and Termination Gate
 
-Fixed floor of 10 items; extendable via Surfaced Concerns. Each item holds one of four states: `unknown`, `draft`, `confirmed`, `N/A`.
+10-item floor; extendable via Surfaced Concerns. Each item: `unknown` / `draft` / `confirmed` / `N/A`.
 
 | # | Item | Phase |
 |---|---|---|
@@ -373,60 +349,54 @@ Fixed floor of 10 items; extendable via Surfaced Concerns. Each item holds one o
 
 ### Phase Gate
 
-A phase ends only when every item it owns is `confirmed` or `N/A`. Do not advance to the next phase otherwise.
+Phase ends when every owned item is `confirmed` or `N/A`. No advancement otherwise.
 
 ### Final Gate
 
-After all ten base items and any Surfaced Concerns are resolved, present the design sections for user approval. The user's explicit approval is the authoritative termination. Do not write the spec file before this point.
+After all ten base items + Surfaced Concerns resolved, present design for user approval. Explicit approval terminates. No spec file before this.
 
 ### Confidence Signal (internal only)
 
-After every turn, self-rate confidence on each unresolved item. Use the **lowest-confidence item** to pick the next question. Confidence is **never a gate** — only a prioritization tool. This compensates for the known miscalibration of LLM self-confidence: a "confident" answer is not the same as a correct one.
+Self-rate confidence per unresolved item each turn. Use the **lowest-confidence item** to pick the next question. **Never a gate** — prioritization only. LLM self-confidence is miscalibrated; don't treat confidence as correctness.
 
 ### Status Line
 
-Every turn begins with a status line:
+Every turn starts:
 
 ```
-[Phase <N> <name> | Unresolved: <item numbers> | Added: <surfaced items or none>]
+[Phase <N> <name> | Unresolved: <item numbers> | Added: <surfaced or none>]
 ```
 
 ## Surfaced Concerns
 
-The 10-item list is a floor, not a ceiling. Whenever you detect a concern that must be resolved before the design can be written, raise it as a Surfaced Concern:
+The 10-item list is a floor. Raise any additional concern blocking design as a Surfaced Concern:
 
 ```
 ⚠ Surfaced concern: <title> — <why it matters>. Add to checklist? (**Add / Decline / Defer**)
 ```
 
-Route the user's response:
+Route the response:
 
-- **Add** — becomes item #11+, tracked like any other item. Must reach `confirmed` before the owning phase closes. Assign it to the phase whose scope it falls under (or the current phase if ambiguous).
-- **Decline** — record in the spec's Decision Log under "Declined concerns" with the user's reason.
-- **Defer** — record in the spec's Unresolved Items section. Must be addressed before implementation starts.
+- **Add** — becomes item #11+, must reach `confirmed` before owning phase closes. Assign to the matching phase (or current if ambiguous).
+- **Decline** — record in Decision Log → Declined concerns with reason.
+- **Defer** — record in Unresolved Items (blocks implementation).
 
-No surfaced concern is ever silently dropped. This mechanism makes Claude co-responsible for coverage and defends against the checklist becoming pro-forma.
+No surfaced concern is silently dropped. This makes Claude co-responsible for coverage.
 
-**When to surface (not every thought):** only raise concerns that genuinely block design. Implementation details ("what library to use for X") belong in the plan, not the spec. If you catch yourself surfacing more than two concerns per phase, reconsider — you may be drifting into scope creep.
+**When to surface:** only concerns that block design. Implementation details (library choice, etc.) belong in the plan. >2 per phase = scope creep warning.
 
 <!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->
 ```
 
 - [ ] **Step 4: Run the tests to confirm they pass**
 
-```bash
-grep -c "^| [0-9]\+ | " skills/deep-brainstorm/SKILL.md
-grep -q "Surfaced Concerns" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "Confidence Signal" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "Final Gate" skills/deep-brainstorm/SKILL.md && echo OK
-```
-Expected: `10`, three `OK` lines.
+Same commands. Expected: `10`, three `OK` lines.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add skills/deep-brainstorm/SKILL.md
-git commit -m "feat(deep-brainstorm): add checklist, termination gates, surfaced concerns"
+git commit -m "feat(deep-brainstorm): add checklist, gates, surfaced concerns"
 ```
 
 ---
@@ -438,7 +408,6 @@ git commit -m "feat(deep-brainstorm): add checklist, termination gates, surfaced
 
 - [ ] **Step 1: Write the validation test**
 
-Plan tests:
 ```bash
 grep -q "^## Anti-Patterns$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "Checklist theater" skills/deep-brainstorm/SKILL.md && echo OK
@@ -451,29 +420,27 @@ Expected: six `OK` lines.
 
 - [ ] **Step 2: Run the test to confirm it fails**
 
-Same commands produce nothing.
+Same commands. No output.
 
-- [ ] **Step 3: Append the Anti-Patterns and Extended Spec Format sections**
+- [ ] **Step 3: Append Anti-Patterns + Extended Spec Format**
 
-Use Edit to replace the marker `<!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->` with:
+Replace the marker with:
 
 ````markdown
 ## Anti-Patterns
 
-Guard against these failure modes. They are common and each undermines the purpose of this skill.
-
-1. **Checklist theater** — asking about an item purely to tick a box. Every question must serve real clarification. If you cannot articulate what information you need, do not ask.
-2. **Contrarianism** — proposing alternatives without motivation. Every alternative you present must come with an explicit reason it may be better than the current direction. "Here's another option" with no argument is noise.
-3. **Scope creep via surfacing** — raising every possible concern. Surface only what genuinely blocks design — not implementation details, not nice-to-haves.
-4. **Question bombing** — more than one question per turn. Always one focused question. If you have more, pick the most important and queue the rest.
-5. **Premature design** — presenting a design before all owned checklist items are resolved. This is hard-gated; do not bypass.
-6. **Review laundering** — accepting a subagent `PASS` verdict without reading the findings. The reviewer may approve with observations; read them.
+1. **Checklist theater** — asking to tick boxes. If you can't articulate what info you need, don't ask.
+2. **Contrarianism** — alternatives without motivation. Every alternative needs an explicit reason it may beat the current direction.
+3. **Scope creep via surfacing** — surface only what blocks design. Not implementation details, not nice-to-haves.
+4. **Question bombing** — >1 question per turn. Pick the most important; queue the rest.
+5. **Premature design** — designing before owned items resolved. Hard-gated.
+6. **Review laundering** — accepting `PASS` without reading observations. Reviewers approve with notes; read them.
 
 ## Extended Spec Format
 
-Save to: `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`
+Save to: `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`.
 
-The spec covers the same ground as a brainstorming-produced spec, plus three additions that preserve the decision-making work: **Decision Log**, **Unresolved Items**, **Checklist Snapshot**.
+Adds three sections over brainstorming spec: **Decision Log**, **Unresolved Items**, **Checklist Snapshot**.
 
 ### Spec Structure
 
@@ -481,24 +448,18 @@ The spec covers the same ground as a brainstorming-produced spec, plus three add
 # [Feature Name] Design
 
 ## Overview
-[What this feature does and why — 2-3 sentences]
+[What + why — 2-3 sentences]
 
 ## Motivation
-[Why this change is needed — bullet points]
+[Why now — bullets]
 
 ## Design
-
-### [Section per major component or decision]
-[Architecture, components, data flow, interfaces — scaled to complexity]
-
+### [Component/decision sections, scaled to complexity]
 ### Error Handling
-[How errors are handled — omit if trivial]
-
 ### Testing Strategy
-[What to test and how — types of tests, key scenarios]
 
 ## File Changes
-[New files, modified files — table format]
+[Table: File / Status / Purpose]
 
 ---
 
@@ -507,11 +468,11 @@ The spec covers the same ground as a brainstorming-produced spec, plus three add
 ### Decision N: [topic]
 - **Alternatives considered**: [A / B / C]
 - **Chosen**: [option]
-- **Reasoning**: [why, including why others were rejected]
-- **Declined concerns**: [surfaced concerns the user dismissed, with reasons]
+- **Reasoning**: [why chosen beats rejected]
+- **Declined concerns**: [surfaced items the user dismissed, with reason]
 
 ## Unresolved Items
-- [ ] [deferred concern] — must be resolved before implementation
+- [ ] [deferred item] — must resolve before implementation
 
 ## Checklist Snapshot
 | # | Item | Status | Notes |
@@ -520,32 +481,22 @@ The spec covers the same ground as a brainstorming-produced spec, plus three add
 | ... | ... | ... | ... |
 ```
 
-The Decision Log captures the thinking spent in Challenge phase — every alternative you considered, why you chose one, and why you rejected the others. Workers and Reviewers downstream can audit design choices without asking.
-
-The Unresolved Items section makes deferred decisions explicit — `writing-plans` and `team-driven-development` will see these and can surface them for re-discussion before implementation.
-
-The Checklist Snapshot gives reviewers a one-glance audit of what was (and was not) considered.
+- **Decision Log**: captures Challenge-phase thinking. Auditable by downstream Workers/Reviewers.
+- **Unresolved Items**: deferred decisions made explicit. Downstream skills can re-surface.
+- **Checklist Snapshot**: one-glance audit of what was considered.
 
 <!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->
 ````
 
 - [ ] **Step 4: Run the tests to confirm they pass**
 
-```bash
-grep -q "^## Anti-Patterns$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "Checklist theater" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "Contrarianism" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "^## Extended Spec Format$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "## Decision Log" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "## Checklist Snapshot" skills/deep-brainstorm/SKILL.md && echo OK
-```
-Expected: six `OK` lines.
+Same commands. Expected: six `OK` lines.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add skills/deep-brainstorm/SKILL.md
-git commit -m "feat(deep-brainstorm): add anti-patterns and extended spec format"
+git commit -m "feat(deep-brainstorm): add anti-patterns and spec format"
 ```
 
 ---
@@ -557,10 +508,9 @@ git commit -m "feat(deep-brainstorm): add anti-patterns and extended spec format
 
 - [ ] **Step 1: Write the validation test**
 
-Plan tests:
 ```bash
 grep -q "^## Review Pipeline$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "^## Error Handling and Edge Cases$" skills/deep-brainstorm/SKILL.md && echo OK
+grep -q "^## Error Handling$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^## Integration$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^## Testing Strategy$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^## Key Principles$" skills/deep-brainstorm/SKILL.md && echo OK
@@ -571,96 +521,87 @@ Expected: seven `OK` lines.
 
 - [ ] **Step 2: Run the test to confirm it fails**
 
-Same commands; missing headings produce no output.
+Same commands. Missing headings produce no output.
 
-- [ ] **Step 3: Append the final sections**
+- [ ] **Step 3: Append final sections**
 
-Use Edit to replace the final marker `<!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->` with:
+Replace the final marker with:
 
 ```markdown
 ## Review Pipeline
 
-Replace brainstorming's pure self-review with a two-step pipeline.
+Replaces brainstorming's pure self-review with a two-step pipeline.
 
-### 1. Light Self-Review (~30 seconds)
+### 1. Light Self-Review (~30s)
 
-Mechanical pass only. Check for:
-- Placeholder text: `TBD`, `TODO`, "fill in later", incomplete sentences.
-- Obvious internal contradictions (statements that flatly contradict earlier sections).
-- Missing sections from the Extended Spec Format template.
+Mechanical pass only:
+- Placeholders: `TBD`, `TODO`, `fill in later`, incomplete sentences.
+- Obvious internal contradictions.
+- Missing Extended Spec Format sections.
 
-Fix findings inline. Do not attempt a substantive critique here — that is the subagent's job.
+Fix inline. Substantive critique is the subagent's job.
 
 ### 2. Subagent Review
 
-Dispatch a fresh subagent (no conversation context) using the Task/Agent tool with:
+Dispatch fresh subagent (no context) via Task/Agent with:
 
-- The absolute path to the spec file.
-- The reviewer prompt loaded from `skills/deep-brainstorm/prompts/reviewer.md`.
-- Instructions to read the spec in full before responding.
+- Absolute path to spec file.
+- Reviewer prompt from `skills/deep-brainstorm/prompts/reviewer.md`.
+- Instruction: read spec fully before responding.
 
-The subagent must return `PASS` or `CHANGES_REQUESTED: [findings]` (format defined in `prompts/reviewer.md`).
+Subagent returns `PASS` or `CHANGES_REQUESTED: [findings]` (format in `prompts/reviewer.md`).
 
 ### Revision Loop
 
-On `CHANGES_REQUESTED`: revise the spec to address each finding, then re-dispatch a fresh subagent. **Maximum two revision rounds.** If the third dispatch still returns `CHANGES_REQUESTED`, do not loop further — surface the findings to the user verbatim and let them decide whether to continue, revise manually, or accept known gaps.
+On `CHANGES_REQUESTED`: revise → re-dispatch. **Max 2 rounds.** 3rd round: surface findings to user verbatim; user decides continue / revise manually / accept gaps.
 
 ### User Approval
 
-After `PASS` (or after surfacing unresolved findings), ask the user to review the spec file:
+After `PASS` (or surfaced findings), ask user:
 
-> "Spec written and committed to `<path>`. Subagent review: <PASS / findings surfaced>. Please review and let me know if you want changes before I invoke writing-plans."
+> "Spec committed to `<path>`. Subagent review: <PASS / findings surfaced>. Review and let me know before I invoke writing-plans."
 
-Wait for approval. Only then proceed to handoff.
+Wait for approval, then hand off.
 
-## Error Handling and Edge Cases
+## Error Handling
 
-- **User dismisses every counter-proposal** — record each as a Declined concern in the Decision Log. Do not loop or re-argue. Proceed with the user's direction.
-- **User defers a decision** ("either is fine", "up to you") — mirror `quick-plan` convention: choose the most comprehensive option that satisfies all plausible interpretations, record as a Deferred decision in the Decision Log with your reasoning, proceed.
-- **Subagent review fails twice** — surface the findings to the user verbatim. Do not enter a third automated round.
-- **User tries to skip ahead** ("just write the spec already") — acknowledge, mark remaining unresolved items as Deferred in Unresolved Items, proceed to design. The user retains ultimate control.
-- **User changes direction mid-skill** — if the user pivots (e.g., "actually, let's build Y instead"), mark current items as `N/A` with a reason, reset to Phase 1, announce the reset, and continue.
+- **User dismisses all counter-proposals** — record each as Declined in Decision Log. Don't loop. Proceed with user's direction.
+- **User defers** ("either is fine"/"up to you") — mirror `quick-plan`: pick the most comprehensive option, record as Deferred decision with reasoning, proceed.
+- **Subagent fails twice** — surface verbatim; no third automated round.
+- **User skips ahead** ("just write the spec") — mark remaining items as Deferred, proceed. User retains control.
+- **User pivots mid-skill** — mark current items `N/A` with reason, reset to Phase 1, announce reset, continue.
 
 ## Integration
 
-- **Replaces**: `brainstorming` for vague or high-stakes cases. Users pick per-invocation.
-- **Coexists with**: `quick-plan` for cases where requirements are already clear.
-- **Hands off to**: `writing-plans` after spec approval — identical terminal transition to `brainstorming`.
-- **Downstream**: plans produced from deep-brainstorm specs are executed by `team-driven-development` as usual. Workers and Reviewers benefit from the Decision Log audit trail.
+- **Replaces**: `brainstorming` for vague/high-stakes cases.
+- **Coexists with**: `quick-plan` (requirements already clear).
+- **Hands off to**: `writing-plans` after approval.
+- **Downstream**: plans executed by `team-driven-development`. Workers/Reviewers consume the Decision Log.
 
 ## Testing Strategy
 
-This skill is a markdown prompt — testing is manual and comparative.
+Markdown prompt — testing is manual and comparative.
 
-- **Smoke test** — run `/deep-brainstorm` against a deliberately vague prompt (e.g., "I want to add notifications"). Verify: status line appears each turn, Phase 1 uses the structured three-part format, phase gates block advancement, Surfaced Concerns are routed correctly, subagent review is dispatched, spec contains Decision Log and Checklist Snapshot.
-- **Comparative test** — run the same vague prompt through `brainstorming` and `deep-brainstorm`. Diff the specs. `deep-brainstorm` should show more completeness, explicit alternatives, and a traceable Decision Log.
-- **Handoff test** — confirm the skill invokes `writing-plans` after approval and that a plan can be produced from the spec without loss of information.
+- **Smoke test** — run against a vague prompt ("add notifications"). Verify: status line per turn, Phase 1 structured format, phase gates block advancement, Surfaced Concerns route correctly, subagent review dispatched, spec contains Decision Log + Checklist Snapshot.
+- **Comparative test** — same prompt through `brainstorming` vs `deep-brainstorm`. Diff specs. deep-brainstorm should show more completeness and traceable reasoning.
+- **Handoff test** — `writing-plans` produces a plan from the spec without information loss.
 
 ## Key Principles
 
-- **One question at a time** — always one focused question per turn. Multiple choice preferred.
-- **Counter-propose only with motivation** — every alternative carries an explicit reason.
-- **Coverage over confidence** — the checklist decides whether you can advance; Claude's self-confidence does not.
-- **Surface blocking concerns, not trivia** — add items only when they would cause rework if ignored.
-- **Preserve the thinking** — the Decision Log is not optional; the reasoning discussed during Challenge phase must survive into the spec.
-- **External review over self-review** — fresh eyes catch what the author cannot see.
-- **Human has final say** — the user approves both the design and the spec; hard-gated.
+- **One question per turn**. Multiple choice preferred.
+- **Counter-propose with motivation only**.
+- **Coverage over confidence** — checklist gates advancement, not self-confidence.
+- **Surface blocking concerns only**.
+- **Preserve the thinking** — Decision Log is mandatory.
+- **External review over self-review**.
+- **Human has final say**.
 ```
 
 - [ ] **Step 4: Run the tests to confirm they pass**
 
-```bash
-grep -q "^## Review Pipeline$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "^## Error Handling and Edge Cases$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "^## Integration$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "^## Testing Strategy$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "^## Key Principles$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "prompts/reviewer.md" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "writing-plans" skills/deep-brainstorm/SKILL.md && echo OK
-```
-Expected: seven `OK` lines.
+Same commands. Expected: seven `OK` lines.
 
-Also confirm the marker is gone:
+Also confirm marker removed:
 ```bash
 grep -c "SECTIONS BELOW ARE ADDED" skills/deep-brainstorm/SKILL.md
 ```
@@ -682,7 +623,7 @@ git commit -m "feat(deep-brainstorm): add review pipeline, error handling, integ
 
 - [ ] **Step 1: Full structural grep**
 
-Run all of these; every line must print `OK`:
+Each line must print `OK`:
 
 ```bash
 grep -q "^name: deep-brainstorm$" skills/deep-brainstorm/SKILL.md && echo OK
@@ -694,7 +635,7 @@ grep -q "^## Surfaced Concerns$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^## Anti-Patterns$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^## Extended Spec Format$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^## Review Pipeline$" skills/deep-brainstorm/SKILL.md && echo OK
-grep -q "^## Error Handling and Edge Cases$" skills/deep-brainstorm/SKILL.md && echo OK
+grep -q "^## Error Handling$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^## Integration$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^## Testing Strategy$" skills/deep-brainstorm/SKILL.md && echo OK
 grep -q "^## Key Principles$" skills/deep-brainstorm/SKILL.md && echo OK
@@ -703,76 +644,72 @@ grep -q "^# deep-brainstorm Spec Reviewer$" skills/deep-brainstorm/prompts/revie
 
 Expected: 14 `OK` lines.
 
-- [ ] **Step 2: Check 10-item table presence**
+- [ ] **Step 2: 10-item table check**
 
 ```bash
 grep -c "^| [0-9]\+ | " skills/deep-brainstorm/SKILL.md
 ```
-Expected: exactly `10`.
+Expected: `10`.
 
-- [ ] **Step 3: Check no placeholders remain**
+- [ ] **Step 3: No placeholders**
 
 ```bash
-grep -E "TBD|TODO|FIXME|SECTIONS BELOW" skills/deep-brainstorm/SKILL.md
+grep -E "TBD|FIXME|SECTIONS BELOW" skills/deep-brainstorm/SKILL.md
 ```
-Expected: no output (empty). If any line returns, fix it and recommit before proceeding.
+Expected: no output. (`TODO` and "fill in later" appear legitimately inside the anti-pattern and review-pipeline text, so they're excluded from this scan.)
 
-- [ ] **Step 4: Verify skill auto-discovery**
-
-Confirm no registration changes are needed (plugin auto-discovers skills from `skills/`):
+- [ ] **Step 4: Skill layout**
 
 ```bash
 test -d skills/deep-brainstorm && test -f skills/deep-brainstorm/SKILL.md && test -f skills/deep-brainstorm/prompts/reviewer.md && echo "Skill layout OK"
 ```
 Expected: `Skill layout OK`.
 
-- [ ] **Step 5: No commit for this task** — it is a read-only verification step.
+- [ ] **Step 5: No commit** — verification only.
 
 ---
 
 ## Task 8: Manual smoke test (operator-run)
 
-This task is run by the human operator, not an agentic worker. It verifies the skill behaves as designed in a real invocation. Record the result at the bottom of this plan file.
+Human operator runs this; record the result at the bottom of this file.
 
-- [ ] **Step 1: Invoke with a vague prompt**
-
-Start a fresh Claude Code session and run:
+- [ ] **Step 1: Invoke**
 
 ```
 /deep-brainstorm I want to add notifications to my app
 ```
 
-- [ ] **Step 2: Verify Phase 1 behavior**
+- [ ] **Step 2: Phase 1 behavior**
 
-Confirm:
-- A status line of the form `[Phase 1 Distill | Unresolved: 1,2,3,4 | Added: none]` appears on Claude's first reply.
-- The reply uses the 📌 / 🔍 / ❓ template.
-- Only one question is asked.
+Verify:
+- Status line `[Phase 1 Distill | Unresolved: 1,2,3,4 | Added: none]` on first reply.
+- Uses 📌 / 🔍 / ❓ template.
+- One question only.
 
-- [ ] **Step 3: Verify phase gating**
+- [ ] **Step 3: Phase gating**
 
-Continue answering until Phase 1 items are `confirmed`. Confirm that:
-- Claude does not advance to Phase 2 while any Phase 1 item is `unknown` or `draft`.
-- When all four are `confirmed`, the status line transitions to `[Phase 2 Challenge | ...]`.
+Continue until Phase 1 items `confirmed`. Verify:
+- No advance while any Phase 1 item is `unknown`/`draft`.
+- Status line transitions to `[Phase 2 Challenge | ...]` when all four confirmed.
 
-- [ ] **Step 4: Verify Surfaced Concerns**
+- [ ] **Step 4: Surfaced Concerns**
 
-Watch for at least one `⚠ Surfaced concern:` prompt over the course of the session. Test each route (Add, Decline, Defer) at least once across separate sessions if possible.
+Watch for at least one `⚠ Surfaced concern:` prompt. Test each route (Add, Decline, Defer) across separate sessions where possible.
 
-- [ ] **Step 5: Verify subagent review**
+- [ ] **Step 5: Subagent review**
 
-After spec approval, confirm Claude dispatches a subagent review before asking for user approval. Confirm the verdict (`PASS` or `CHANGES_REQUESTED`) is shown.
+After spec approval, confirm subagent dispatch happens before user-approval ask. Verdict shown.
 
-- [ ] **Step 6: Verify spec contents**
+- [ ] **Step 6: Spec contents**
 
-Open the produced spec file. Confirm it contains:
-- Decision Log with at least one entry per major decision discussed.
-- Unresolved Items section (may be empty if nothing was deferred).
-- Checklist Snapshot table with all ten base items and any Surfaced Concerns.
+Open the produced spec. Verify:
+- Decision Log with one entry per major decision.
+- Unresolved Items section (may be empty).
+- Checklist Snapshot with all ten base items + any Surfaced Concerns.
 
 - [ ] **Step 7: Record result**
 
-Append to the bottom of this plan file:
+Append to the bottom of this file:
 
 ```markdown
 ## Smoke Test Result (YYYY-MM-DD)
@@ -784,7 +721,7 @@ Append to the bottom of this plan file:
 - Notes: <anything unexpected>
 ```
 
-Commit the update:
+Commit:
 
 ```bash
 git add docs/team-dd/plans/2026-04-17-deep-brainstorm.md
