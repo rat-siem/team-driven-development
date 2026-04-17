@@ -67,3 +67,16 @@ digraph sprint_master {
 
 - Two positional arguments, both required: absolute or repo-relative paths.
 - Supported equally: direct human invocation, handoff from `team-plan`, F4-gated dispatch from `team-driven-development`.
+
+## Input
+
+- `<spec-path>`: absolute or repo-relative path to a spec markdown file. Must exist and be readable.
+- `<plan-path>`: absolute or repo-relative path to a plan markdown file. Must exist and be readable. Must contain at least one `### Task N:` heading.
+
+## Output Layout
+
+- `sprints/<topic>/common.md` — feature-level shared fields.
+- `sprints/<topic>/task-N.md` — one file per plan task, numbered to match the plan.
+- `<topic>` is derived from the plan filename by stripping the trailing `.md`.
+- Example: `docs/team-dd/plans/2026-04-18-sprint-master.md` → `sprints/2026-04-18-sprint-master/`.
+- The `sprints/` directory is committed to git.
