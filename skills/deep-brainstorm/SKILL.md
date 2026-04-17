@@ -76,4 +76,44 @@ digraph deep_brainstorm {
 }
 ```
 
+## Three Phases
+
+Phase ends when owned items are `confirmed` or `N/A`. `N/A` reasons go in the Decision Log.
+
+### Phase 1 — Distill
+
+Resolve Purpose, Success criteria, Scope boundaries, Users/stakeholders.
+
+**Turn format: structured three-part (strict).**
+
+```
+[Phase 1 Distill | Unresolved: <item numbers> | Added: <surfaced or none>]
+
+📌 Understanding: <1-2 sentence restatement>
+🔍 Gaps: <2-3 bullet points>
+❓ Question: <one question, multiple-choice preferred>
+```
+
+Status line required every turn. 📌/🔍/❓ required until Phase 1 items confirmed.
+
+Owned items: 1 Purpose, 2 Success criteria, 3 Scope boundaries, 4 Users/stakeholders.
+
+### Phase 2 — Challenge
+
+Counter-proposals, stress-tests, resolve Alternatives / Assumptions / Constraints.
+
+**Turn format: dynamic, counter-proposal-centric.** Status line required; 📌/🔍/❓ optional. Counter-proposals need real motivation (see Anti-Patterns).
+
+Present 2–3 alternatives per major decision with trade-offs and a recommended option. Record everything in the Decision Log — user acceptance doesn't matter.
+
+Owned items: 5 Alternatives considered, 6 Assumptions, 7 Major constraints.
+
+### Phase 3 — Harden
+
+Probe Risks / Security / NFR. Status line required.
+
+**Turn format: dynamic.** Targeted probes at unresolved items; proposal-style confirmation OK ("I'll proceed with X unless you object"). Use lowest-confidence item (see Confidence Signal) to pick the next probe.
+
+Owned items: 8 Risks, 9 Security, 10 NFR.
+
 <!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->
