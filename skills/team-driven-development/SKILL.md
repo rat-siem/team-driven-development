@@ -96,24 +96,20 @@ If output contains `/worktrees/` → **Worktree Mode**:
 - B-2: omit `isolation: "worktree"`.
 - Skip B-6.
 
-### Quick Score
+### Quick Score → Mode Selection
 
 | Factor | 0 | +1 | +2 |
 |--------|---|----|----|
 | Tasks | 1-2 | 3-4 | 5+ |
 | Files | ≤3 | 4-6 | 7+ |
 | Domains | single | multiple | — |
-| Design keywords | — | present | — |
+| Design keywords (architecture, migration, security, API design) | — | present | — |
 
-Design keywords: architecture, migration, security, API design.
-
-### Mode Selection
-
-- `--lite` → Lite. If Score > 1: "Plan has Quick Score [N] — typically Full Mode. Proceeding Lite as requested."
-- `--full` → Full, skip proposal.
+- `--lite` → Lite Mode. If total > 1: `"Plan has Quick Score [N] — typically Full Mode. Proceeding Lite as requested."`
+- `--full` → Full Mode, skip proposal.
 - Auto: Score ≤ 1 → propose Lite. Score > 1 → Full.
 
-**Proposal:** "This plan has [N] tasks touching [M] files — lightweight enough for direct execution. Use Lite Mode? **Yes** — direct execution + single review. **No** — full team process."
+**Proposal (auto, Score ≤ 1):** "This plan has [N] tasks touching [M] files — lightweight enough for direct execution. Use Lite Mode? **Yes** — direct execution + single review. **No** — full team process."
 
 ## Lite Mode
 
