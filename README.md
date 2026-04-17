@@ -158,7 +158,7 @@ claude plugin update team-driven-development
 
 ## Usage
 
-This plugin works best with [Superpowers](https://github.com/obra/superpowers) but can be used standalone.
+This plugin is self-contained — all planning, implementation, and review skills ship with it.
 
 ### With Quick Brainstorm (self-contained)
 
@@ -166,7 +166,7 @@ This plugin works best with [Superpowers](https://github.com/obra/superpowers) b
 /quick-brainstorm <task description> → team-driven-development
 ```
 
-The `quick-brainstorm` skill generates a spec and plan with minimal dialogue — no superpowers dependency needed. When the plan is ready, it offers to hand off directly to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-brainstorm automatically.
+The `quick-brainstorm` skill generates a spec and plan with minimal dialogue. When the plan is ready, it offers to hand off directly to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-brainstorm automatically.
 
 ### Solo Review (standalone)
 
@@ -188,17 +188,17 @@ Override options:
 /solo-review --contract path/to/contract.md  # use specific Sprint Contract
 ```
 
-### With Superpowers (thorough)
+### With Deep Brainstorm (thorough)
 
 ```
-brainstorming → team-plan → team-driven-development
+deep-brainstorm → team-plan → team-driven-development
 ```
 
-For tasks that need deep exploration — multiple approach comparisons, section-by-section design approval, visual mockups — use the `deep-brainstorm` skill. The `team-plan` skill produces the implementation plan from the approved spec. Execute with Team-Driven Development for complex plans that benefit from role specialization.
+For vague or high-stakes requirements that need deep exploration — multiple approach comparisons, section-by-section design approval, Decision Log preservation — use `deep-brainstorm`. It drives Distill / Challenge / Harden phases and produces an extended spec. The approved spec flows into `team-plan`, which generates the implementation plan and invokes `sprint-master` to produce Sprint Contract files. Execute the plan with Team-Driven Development for complex work that benefits from role specialization.
 
 ### Standalone
 
-Write a plan in the Superpowers task format:
+Write a plan in the team-plan task format:
 
 ````markdown
 ### Task 1: [Name]

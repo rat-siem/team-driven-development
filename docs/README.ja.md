@@ -157,7 +157,7 @@ claude plugin update team-driven-development
 
 ## 使い方
 
-[Superpowers](https://github.com/obra/superpowers) と組み合わせて使うのが最適ですが、単体でも使用できます。
+このプラグインは自己完結しています — 企画、実装、レビューのすべてのスキルが同梱されています。
 
 ### Quick Brainstorm と併用（自己完結）
 
@@ -165,7 +165,7 @@ claude plugin update team-driven-development
 /quick-brainstorm <タスクの説明> → team-driven-development
 ```
 
-`quick-brainstorm` スキルは最小限の対話で spec と plan を生成します — superpowers への依存なし。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-brainstorm を提案します。
+`quick-brainstorm` スキルは最小限の対話で spec と plan を生成します。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-brainstorm を提案します。
 
 ### Solo Review（単体レビュー）
 
@@ -187,17 +187,17 @@ claude plugin update team-driven-development
 /solo-review --contract path/to/contract.md  # 特定の Sprint Contract を使用
 ```
 
-### Superpowers と併用（じっくり）
+### Deep Brainstorm と併用（じっくり）
 
 ```
-brainstorming → team-plan → team-driven-development
+deep-brainstorm → team-plan → team-driven-development
 ```
 
-深い探索が必要なタスク — 複数アプローチの比較、セクションごとの設計承認、ビジュアルモックアップ — には `deep-brainstorm` スキルを使用してください。承認済み spec から `team-plan` スキルが実装プランを出力します。役割分担が効果的な複雑なプランで Team-Driven Development を実行方法として選択してください。
+曖昧または影響の大きい要件で、深い探索が必要なタスク — 複数アプローチの比較、セクションごとの設計承認、Decision Log の保存 — には `deep-brainstorm` を使用します。Distill / Challenge / Harden の3フェーズを駆動し、拡張 spec を生成します。承認済み spec は `team-plan` に流れ、実装プランが生成されたのち `sprint-master` が Sprint Contract ファイルを生成します。役割分担が効果的な複雑なプランは Team-Driven Development で実行します。
 
 ### 単体で使用
 
-Superpowers のタスク形式でプランを記述します：
+team-plan のタスク形式でプランを記述します：
 
 ````markdown
 ### Task 1: [名前]
