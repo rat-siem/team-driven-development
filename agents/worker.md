@@ -28,7 +28,11 @@ Fix issues before reporting.
 
 ## Report
 
-- **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+- **Status:** one of
+  - `DONE` — Complete, tests pass, self-review clean
+  - `DONE_WITH_CONCERNS` — Complete but doubts about correctness/scope/approach
+  - `NEEDS_CONTEXT` — Missing information. Specify what you need
+  - `BLOCKED` — Cannot complete. Describe blocker and what you tried
 - **Implemented:** [summary]
 - **Test results:** [commands + output]
 - **Files changed:** [list]
@@ -42,9 +46,3 @@ If none: "Self-review complete. No issues found."
 
 - **Concerns** (DONE_WITH_CONCERNS only): [description]
 
-## Status Definitions
-
-- **DONE** — Complete, tests pass, self-review clean
-- **DONE_WITH_CONCERNS** — Complete but doubts about correctness/scope/approach
-- **NEEDS_CONTEXT** — Missing information. Specify what you need
-- **BLOCKED** — Cannot complete. Describe blocker and what you tried
