@@ -11,18 +11,7 @@ Execute implementation plans by orchestrating specialized subagents. The Lead (y
 
 ## When to Use
 
-```dot
-digraph when_to_use {
-    "Have implementation plan?" [shape=diamond];
-    "team-driven-development" [shape=box];
-    "Suggest quick-plan" [shape=box];
-    "Have implementation plan?" -> "team-driven-development" [label="yes"];
-    "Have implementation plan?" -> "Suggest quick-plan" [label="no"];
-}
-```
-
-- You have an implementation plan to execute
-- Simple plans automatically trigger Lite Mode suggestion
+You have an implementation plan to execute. No plan → suggest the `quick-plan` skill first. Simple plans automatically trigger Lite Mode suggestion.
 
 ## Arguments
 
@@ -107,24 +96,20 @@ If output contains `/worktrees/` → **Worktree Mode**:
 - B-2: omit `isolation: "worktree"`.
 - Skip B-6.
 
-### Quick Score
+### Quick Score → Mode Selection
 
 | Factor | 0 | +1 | +2 |
 |--------|---|----|----|
 | Tasks | 1-2 | 3-4 | 5+ |
 | Files | ≤3 | 4-6 | 7+ |
 | Domains | single | multiple | — |
-| Design keywords | — | present | — |
+| Design keywords (architecture, migration, security, API design) | — | present | — |
 
-Design keywords: architecture, migration, security, API design.
-
-### Mode Selection
-
-- `--lite` → Lite. If Score > 1: "Plan has Quick Score [N] — typically Full Mode. Proceeding Lite as requested."
-- `--full` → Full, skip proposal.
+- `--lite` → Lite Mode. If total > 1: `"Plan has Quick Score [N] — typically Full Mode. Proceeding Lite as requested."`
+- `--full` → Full Mode, skip proposal.
 - Auto: Score ≤ 1 → propose Lite. Score > 1 → Full.
 
-**Proposal:** "This plan has [N] tasks touching [M] files — lightweight enough for direct execution. Use Lite Mode? **Yes** — direct execution + single review. **No** — full team process."
+**Proposal (auto, Score ≤ 1):** "This plan has [N] tasks touching [M] files — lightweight enough for direct execution. Use Lite Mode? **Yes** — direct execution + single review. **No** — full team process."
 
 ## Lite Mode
 
@@ -263,11 +248,7 @@ Never force retry without changes.
 
 ### Verdict Rules
 
-| Severity | Impact |
-|----------|--------|
-| critical | REQUEST_CHANGES — security, data loss, production failure |
-| major | REQUEST_CHANGES — spec mismatch, test failure, feature breakage |
-| minor/recommendation | No impact (APPROVE) |
+Severity → verdict mapping is defined in `agents/reviewer.md`. The Lead applies the same rules when running a static-profile review.
 
 ### B-5: Fix Loop (max 3 rounds)
 REQUEST_CHANGES → issues to Worker → fix in same worktree → re-review → APPROVE or 3 rounds → escalate.
