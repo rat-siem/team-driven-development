@@ -160,3 +160,16 @@ Score 0-1 → haiku. Score 2 → sonnet. Score 3+ → opus.
 | 1-2 files, logic only, no UI | `static` |
 | Tests, multi-file, integration | `runtime` |
 | UI, CSS, visual | `browser` |
+
+## Contract QA Self-Review
+
+Mechanical pass before writing files:
+
+1. **Criterion specificity** — each `Success Criteria` item is specific and verifiable. Reject "Code works"; require conditions like "GET /api/users returns 200 with JSON array".
+2. **Test command completeness** — each test command includes a file path or filter, not a bare runner name.
+3. **Non-Goal presence** — every `task-N.md` declares at least one `Non-Goal`.
+4. **Profile alignment** — `Reviewer Profile` matches the task's file characteristics (e.g., tasks touching `.tsx` cannot be `static`).
+5. **Secret scan** — detect patterns `AKIA[0-9A-Z]{16}`, `Bearer `, `password=`, `api[_-]?key=`. Redact matches with `<REDACTED>` and add a warning line at the top of `common.md`.
+6. **Path traversal guard** — all write targets resolve to `sprints/<topic>/` within the repo root. Reject absolute paths, `..` segments, and any path escaping the target directory.
+
+Fix findings in place. Max two retry rounds. On third failure, surface findings verbatim to the caller and do not write files.
