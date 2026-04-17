@@ -117,7 +117,7 @@ After Triage, before reading the plan (Full Mode only): check that the plan's re
 
 - If present → proceed to Phase A.
 - If missing → prompt: `sprints/<topic>/ not found. Run sprint-master now? [yes/no]`.
-  - On `yes` → invoke `/team-driven-development:sprint-master <spec-path> <plan-path>` via the Skill tool. The spec path is the `**Spec:**` line in the plan header; the plan path is the current plan. Proceed on success.
+  - On `yes` → dispatch the `sprint-master` subagent via the `Agent` tool (`subagent_type: "team-driven-development:sprint-master"`), passing `<spec-path>` and `<plan-path>` in the prompt. The spec path is the `**Spec:**` line in the plan header; the plan path is the current plan. The agent returns here on completion. Proceed to Phase A on success. On failure, abort with the agent's error message and the re-run command `/team-driven-development:sprint-master <spec-path> <plan-path>`.
   - On `no` → abort with `Execution requires Sprint Contract files under sprints/<topic>/. Generate them or invoke with --lite to skip Sprint Contract enforcement.`
 
 Lite Mode does not require `sprints/<topic>/` and skips the F4 gate.
