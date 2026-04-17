@@ -229,4 +229,70 @@ Adds three sections over brainstorming spec: **Decision Log**, **Unresolved Item
 - **Unresolved Items**: deferred decisions made explicit. Downstream skills can re-surface.
 - **Checklist Snapshot**: one-glance audit of what was considered.
 
-<!-- SECTIONS BELOW ARE ADDED IN LATER TASKS -->
+## Review Pipeline
+
+Replaces brainstorming's pure self-review with a two-step pipeline.
+
+### 1. Light Self-Review (~30s)
+
+Mechanical pass only:
+- Placeholders: `TBD`, `TODO`, `fill in later`, incomplete sentences.
+- Obvious internal contradictions.
+- Missing Extended Spec Format sections.
+
+Fix inline. Substantive critique is the subagent's job.
+
+### 2. Subagent Review
+
+Dispatch fresh subagent (no context) via Task/Agent with:
+
+- Absolute path to spec file.
+- Reviewer prompt from `skills/deep-brainstorm/prompts/reviewer.md`.
+- Instruction: read spec fully before responding.
+
+Subagent returns `PASS` or `CHANGES_REQUESTED: [findings]` (format in `prompts/reviewer.md`).
+
+### Revision Loop
+
+On `CHANGES_REQUESTED`: revise → re-dispatch. **Max 2 rounds.** 3rd round: surface findings to user verbatim; user decides continue / revise manually / accept gaps.
+
+### User Approval
+
+After `PASS` (or surfaced findings), ask user:
+
+> "Spec committed to `<path>`. Subagent review: <PASS / findings surfaced>. Review and let me know before I invoke writing-plans."
+
+Wait for approval, then hand off.
+
+## Error Handling
+
+- **User dismisses all counter-proposals** — record each as Declined in Decision Log. Don't loop. Proceed with user's direction.
+- **User defers** ("either is fine"/"up to you") — mirror `quick-plan`: pick the most comprehensive option, record as Deferred decision with reasoning, proceed.
+- **Subagent fails twice** — surface verbatim; no third automated round.
+- **User skips ahead** ("just write the spec") — mark remaining items as Deferred, proceed. User retains control.
+- **User pivots mid-skill** — mark current items `N/A` with reason, reset to Phase 1, announce reset, continue.
+
+## Integration
+
+- **Replaces**: `brainstorming` for vague/high-stakes cases.
+- **Coexists with**: `quick-plan` (requirements already clear).
+- **Hands off to**: `writing-plans` after approval.
+- **Downstream**: plans executed by `team-driven-development`. Workers/Reviewers consume the Decision Log.
+
+## Testing Strategy
+
+Markdown prompt — testing is manual and comparative.
+
+- **Smoke test** — run against a vague prompt ("add notifications"). Verify: status line per turn, Phase 1 structured format, phase gates block advancement, Surfaced Concerns route correctly, subagent review dispatched, spec contains Decision Log + Checklist Snapshot.
+- **Comparative test** — same prompt through `brainstorming` vs `deep-brainstorm`. Diff specs. deep-brainstorm should show more completeness and traceable reasoning.
+- **Handoff test** — `writing-plans` produces a plan from the spec without information loss.
+
+## Key Principles
+
+- **One question per turn**. Multiple choice preferred.
+- **Counter-propose with motivation only**.
+- **Coverage over confidence** — checklist gates advancement, not self-confidence.
+- **Surface blocking concerns only**.
+- **Preserve the thinking** — Decision Log is mandatory.
+- **External review over self-review**.
+- **Human has final say**.
