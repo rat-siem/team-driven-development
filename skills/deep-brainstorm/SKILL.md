@@ -5,7 +5,7 @@ description: Rigorous variant of brainstorming for vague or high-stakes requirem
 
 # Deep Brainstorm
 
-Forge a vague idea into a specified design through three phases — Distill, Challenge, Harden. Produce an extended spec with Decision Log and Unresolved Items, validate via fresh-eyes subagent, hand off to `writing-plans`.
+Forge a vague idea into a specified design through three phases — Distill, Challenge, Harden. Produce an extended spec with Decision Log and Unresolved Items, validate via fresh-eyes subagent, hand off to `team-plan`.
 
 Unlike `brainstorming`: stronger pushback, Claude-surfaced concerns, external review instead of self-review. Use for vague or high-stakes requirements, or when decision reasoning must survive into the spec.
 
@@ -28,7 +28,7 @@ Create a task for each item and complete in order:
 7. **Light self-review** — placeholders + obvious contradictions (~30s).
 8. **Subagent review** — dispatch with `prompts/reviewer.md`; revise on `CHANGES_REQUESTED`, max 2 rounds.
 9. **User approves spec**.
-10. **Invoke `writing-plans`**.
+10. **Invoke `team-plan`**.
 
 ## Process Flow
 
@@ -49,7 +49,7 @@ digraph deep_brainstorm {
     "Review verdict?" [shape=diamond];
     "Revise spec" [shape=box];
     "User approves spec?" [shape=diamond];
-    "Invoke writing-plans" [shape=doublecircle];
+    "Invoke team-plan" [shape=doublecircle];
 
     "Explore context" -> "Phase 1: Distill";
     "Phase 1: Distill" -> "Distill gate: items 1-4 confirmed?";
@@ -72,7 +72,7 @@ digraph deep_brainstorm {
     "Review verdict?" -> "User approves spec?" [label="PASS"];
     "Review verdict?" -> "User approves spec?" [label="2 rounds failed"];
     "User approves spec?" -> "Revise spec" [label="changes"];
-    "User approves spec?" -> "Invoke writing-plans" [label="approved"];
+    "User approves spec?" -> "Invoke team-plan" [label="approved"];
 }
 ```
 
@@ -260,7 +260,7 @@ On `CHANGES_REQUESTED`: revise → re-dispatch. **Max 2 rounds.** 3rd round: sur
 
 After `PASS` (or surfaced findings), ask user:
 
-> "Spec committed to `<path>`. Subagent review: <PASS / findings surfaced>. Review and let me know before I invoke writing-plans."
+> "Spec committed to `<path>`. Subagent review: <PASS / findings surfaced>. Review and let me know before I invoke team-plan."
 
 Wait for approval, then hand off.
 
@@ -276,7 +276,7 @@ Wait for approval, then hand off.
 
 - **Replaces**: `brainstorming` for vague/high-stakes cases.
 - **Coexists with**: `quick-plan` (requirements already clear).
-- **Hands off to**: `writing-plans` after approval.
+- **Hands off to**: `team-plan` after approval.
 - **Downstream**: plans executed by `team-driven-development`. Workers/Reviewers consume the Decision Log.
 
 ## Testing Strategy
@@ -285,7 +285,7 @@ Markdown prompt — testing is manual and comparative.
 
 - **Smoke test** — run against a vague prompt ("add notifications"). Verify: status line per turn, Phase 1 structured format, phase gates block advancement, Surfaced Concerns route correctly, subagent review dispatched, spec contains Decision Log + Checklist Snapshot.
 - **Comparative test** — same prompt through `brainstorming` vs `deep-brainstorm`. Diff specs. deep-brainstorm should show more completeness and traceable reasoning.
-- **Handoff test** — `writing-plans` produces a plan from the spec without information loss.
+- **Handoff test** — `team-plan` produces a plan from the spec without information loss.
 
 ## Key Principles
 
