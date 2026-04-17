@@ -55,7 +55,10 @@
 
 ## 主な機能
 
-- **Quick Plan** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。`/quick-plan` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
+- **Quick Brainstorm** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。引き渡しは `quick-brainstorm → team-plan → sprint-master → team-driven-development`。`/quick-brainstorm` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
+- **Deep Brainstorm** — 曖昧または影響の大きい要件向けの厳密な3フェーズ版（Distill / Challenge / Harden）。Decision Log、Unresolved Items、Checklist Snapshot を含む拡張 spec を生成。判断の根拠を spec に残したい場合に `/deep-brainstorm` を使用。
+- **Team Plan** — プラグイン内蔵の実装プラン生成器。`docs/team-dd/specs/` の承認済み spec を読み、`docs/team-dd/plans/` にトークン最適化された plan を出力したのち、`sprint-master` を呼び出して Sprint Contract ファイルを生成する。`/team-plan <spec-path>` で呼び出す。
+- **Sprint Master** — Sprint Contract 生成の唯一の所有者。spec と plan から `sprints/<topic>/common.md` と `task-N.md` を書き出す。`team-plan` が plan 生成後に呼び出すほか、`/sprint-master <spec-path> <plan-path>` で直接呼び出し、または team-driven-development の F4 Sprints Gate から呼び出される。
 - **Solo Review** — Reviewer エージェントによる単体コードレビュー。レビュー対象を自動検出（ステージ済み、未コミット、ブランチ diff）し、基準を適応（Sprint Contract → プラン派生 → 汎用）して構造化された判定を出力。`/solo-review` でフルチームワークフローなしにレビューを実行。
 - **適応的プロセス選択** — シンプルなプランには Lite Mode を提案、複雑なプランにはフルチームプロセスを使用。`--lite` / `--full` でトリアージをスキップしてモードを直接選択可能。
 - **動的チーム編成** — タスクの複雑度と種類に応じてロールを割り当て
@@ -83,16 +86,21 @@
 1. プランを読み取り Quick Score を算出（タスク数、ファイル数、ドメイン分散、設計キーワード）
 2. Quick Score ≤ 1 → ユーザーに **Lite Mode** を提案
 3. ユーザーが承諾 → Lead が直接実装し、最後に Reviewer が一括レビュー
-4. ユーザーが拒否 or Quick Score > 1 → Full Mode（Phase A）へ
+4. ユーザーが拒否 or Quick Score > 1 → Phase A-0.5（Full Mode）へ
+
+### Phase A-0.5: スプリントゲート (F4)
+1. プランに対応する `sprints/<topic>/` ディレクトリの存在を確認
+2. 存在する場合 → Phase A へ進む
+3. 存在しない場合 → `sprints/<topic>/ not found. Run sprint-master now? [yes/no]` を提示
+4. `yes` の場合 → `/team-driven-development:sprint-master <spec-path> <plan-path>` を呼び出し、成功後 Phase A へ
+5. `no` の場合 → Sprint Contract ファイルの生成を促すか `--lite` 指定を案内して中断
+6. Lite Mode はこのゲートをスキップ
 
 ### Phase A: 事前分析（Full Mode）
 1. プランからすべてのタスクを読み取り・抽出
-2. 依存関係を動的に解析
-3. タスクごとの Effort Score を算出
-4. タスクごとの reviewer profile を選択
-5. Sprint Contract を生成
-6. **Contract QA** — 各 Contract を検証（検証可能な基準、テストコマンド、非目標、プロファイル一致、依存関係の前提条件）
-7. チーム構成を決定
+2. `sprints/<topic>/common.md` と各 `task-N.md` を読み込む（これらは権威的ソース。再生成しない）
+3. 依存関係を動的に解析
+4. チーム構成を決定
 
 ### Phase B: 実行（タスクごと）
 1. Architect を派遣して Design Brief を取得（必要な場合のみ）
@@ -149,15 +157,15 @@ claude plugin update team-driven-development
 
 ## 使い方
 
-[Superpowers](https://github.com/obra/superpowers) と組み合わせて使うのが最適ですが、単体でも使用できます。
+このプラグインは自己完結しています — 企画、実装、レビューのすべてのスキルが同梱されています。
 
-### Quick Plan と併用（自己完結）
+### Quick Brainstorm と併用（自己完結）
 
 ```
-/quick-plan <タスクの説明> → team-driven-development
+/quick-brainstorm <タスクの説明> → team-driven-development
 ```
 
-`quick-plan` スキルは最小限の対話で spec と plan を生成します — superpowers への依存なし。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-plan を提案します。
+`quick-brainstorm` スキルは最小限の対話で spec と plan を生成します。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-brainstorm を提案します。
 
 ### Solo Review（単体レビュー）
 
@@ -179,17 +187,17 @@ claude plugin update team-driven-development
 /solo-review --contract path/to/contract.md  # 特定の Sprint Contract を使用
 ```
 
-### Superpowers と併用（じっくり）
+### Deep Brainstorm と併用（じっくり）
 
 ```
-brainstorming → writing-plans → team-driven-development
+deep-brainstorm → team-plan → team-driven-development
 ```
 
-深い探索が必要なタスク — 複数アプローチの比較、セクションごとの設計承認、ビジュアルモックアップ — には Superpowers のフルフローを使用してください。`writing-plans` スキルがプランを出力します。実行方法の選択時に、役割分担が効果的な複雑なプランで Team-Driven Development を選択してください。
+曖昧または影響の大きい要件で、深い探索が必要なタスク — 複数アプローチの比較、セクションごとの設計承認、Decision Log の保存 — には `deep-brainstorm` を使用します。Distill / Challenge / Harden の3フェーズを駆動し、拡張 spec を生成します。承認済み spec は `team-plan` に流れ、実装プランが生成されたのち `sprint-master` が Sprint Contract ファイルを生成します。役割分担が効果的な複雑なプランは Team-Driven Development で実行します。
 
 ### 単体で使用
 
-Superpowers のタスク形式でプランを記述します：
+team-plan のタスク形式でプランを記述します：
 
 ````markdown
 ### Task 1: [名前]
@@ -246,7 +254,7 @@ def test_user_creation():
 
 ## 設計ノート: 委任時の意図的な YAGNI 違反
 
-quick-plan の質問フェーズでユーザーが判断を委任した場合（「どっちでもいい」「おまかせ」等）、このスキルは意図的に YAGNI 原則に違反します。最小限/保守的な選択肢を選ぶ代わりに、すべての潜在的要件を包括的に満たす最善のアプローチを選択します — 最小解釈よりもスコープが広がる場合であっても。
+quick-brainstorm の質問フェーズでユーザーが判断を委任した場合（「どっちでもいい」「おまかせ」等）、このスキルは意図的に YAGNI 原則に違反します。最小限/保守的な選択肢を選ぶ代わりに、すべての潜在的要件を包括的に満たす最善のアプローチを選択します — 最小解釈よりもスコープが広がる場合であっても。
 
 これは明確かつ意図的な設計判断です。理由：ユーザーが判断を委任するとき、エージェントに最強の設計を期待しています。ギャップを残す狭いプランは、エッジケースをカバーするやや広いプランよりも劣ります。委任された判断とその理由は、透明性のため spec に記録されます。
 

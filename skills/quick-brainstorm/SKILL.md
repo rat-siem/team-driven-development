@@ -1,16 +1,16 @@
 ---
-name: quick-plan
-description: Lightweight planning skill — generates full-quality spec and plan with minimal dialogue. Use when requirements are mostly clear but need a spec + plan before execution.
+name: quick-brainstorm
+description: Lightweight planning skill — generates full-quality spec with minimal dialogue and delegates plan generation to team-plan. Use when requirements are mostly clear but need a spec + plan before execution.
 ---
 
-# Quick Plan
+# Quick Brainstorm
 
-Generate a full-quality spec and implementation plan with minimal dialogue. Unlike brainstorming (deep-dive questions, approach comparison, section-by-section approval), quick-plan infers what it can from context and only asks about genuinely ambiguous points.
+Generate a full-quality spec with minimal dialogue, then hand off to `team-plan` for implementation-plan generation. Unlike brainstorming (deep-dive questions, approach comparison, section-by-section approval), quick-brainstorm infers what it can from context and only asks about genuinely ambiguous points.
 
-**Announce at start:** "I'm using quick-plan to generate a spec and implementation plan."
+**Announce at start:** "I'm using quick-brainstorm to generate a spec and hand off to team-plan."
 
 <HARD-GATE>
-Do NOT write any implementation code or invoke any execution skill until the user has approved both the spec and the plan.
+Do NOT write any implementation code or invoke any execution skill until the user has approved both the spec (owned by this skill) and the plan (owned by team-plan).
 </HARD-GATE>
 
 ## Checklist
@@ -18,17 +18,15 @@ Do NOT write any implementation code or invoke any execution skill until the use
 1. **Read context** — check relevant files, docs, recent commits related to the request
 2. **Clarify unknowns** — ask only genuinely ambiguous points, one at a time (0 questions is valid)
 3. **Generate spec** — save to `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`, commit
-4. **Spec self-review** — placeholder/consistency/scope/ambiguity check, fix inline
+4. **Spec self-review** — placeholder/consistency/scope/ambiguity/Sprint-Contract check, fix inline
 5. **User confirms spec** — wait for approval, revise if requested
-6. **Generate plan** — save to `docs/team-dd/plans/YYYY-MM-DD-<topic>.md`, commit
-7. **Plan self-review** — spec coverage/placeholder/type consistency check, fix inline
-8. **User confirms plan** — wait for approval, revise if requested
-9. **Propose execution** — offer team-driven-development handoff
+6. **Hand off to `team-plan`** — invoke `/team-driven-development:team-plan <spec-path>`; team-plan owns plan generation, self-review, and the user plan gate
+7. **Propose execution** — after team-plan returns and the plan is approved, offer team-driven-development handoff
 
 ## Process Flow
 
 ```dot
-digraph quick_plan {
+digraph quick_brainstorm {
     "Read context" [shape=box];
     "Unclear requirements?" [shape=diamond];
     "Ask question (one at a time)" [shape=box];
@@ -36,9 +34,7 @@ digraph quick_plan {
     "Generate spec" [shape=box];
     "Spec self-review" [shape=box];
     "User approves spec?" [shape=diamond];
-    "Generate plan" [shape=box];
-    "Plan self-review" [shape=box];
-    "User approves plan?" [shape=diamond];
+    "Hand off to team-plan" [shape=box];
     "Propose execution" [shape=doublecircle];
 
     "Read context" -> "Unclear requirements?";
@@ -50,11 +46,8 @@ digraph quick_plan {
     "Generate spec" -> "Spec self-review";
     "Spec self-review" -> "User approves spec?";
     "User approves spec?" -> "Generate spec" [label="revise"];
-    "User approves spec?" -> "Generate plan" [label="yes"];
-    "Generate plan" -> "Plan self-review";
-    "Plan self-review" -> "User approves plan?";
-    "User approves plan?" -> "Generate plan" [label="revise"];
-    "User approves plan?" -> "Propose execution" [label="yes"];
+    "User approves spec?" -> "Hand off to team-plan" [label="yes"];
+    "Hand off to team-plan" -> "Propose execution";
 }
 ```
 
@@ -126,93 +119,19 @@ Fix issues inline immediately. Then commit and ask the user to confirm.
 
 ### User Spec Gate
 
-> "Spec written and committed to `<path>`. Please review — any changes before I generate the plan?"
+> "Spec written and committed to `<path>`. Please review — any changes before I hand off to team-plan?"
 
-Wait for user response. Revise if requested. Only proceed to plan generation after approval.
+Wait for user response. Revise if requested. Only proceed to the team-plan handoff after approval.
 
-## Plan Generation
+## Handoff to team-plan
 
-Save to: `docs/team-dd/plans/YYYY-MM-DD-<topic>.md`
+After the user approves the spec, invoke `team-plan` with the spec path:
 
-The plan follows the same standards as a writing-plans-produced plan — full quality, bite-sized TDD tasks, no placeholders.
-
-### Plan Header
-
-```markdown
-# [Feature Name] Implementation Plan
-
-> **For agentic workers:** Use team-driven-development to execute this plan.
-
-**Goal:** [One sentence describing what this builds]
-
-**Architecture:** [2-3 sentences about approach]
-
-**Tech Stack:** [Key technologies/libraries]
-
----
+```
+/team-driven-development:team-plan <spec-path>
 ```
 
-### File Structure
-
-Before defining tasks, map out which files will be created or modified and what each one is responsible for. Follow existing codebase patterns.
-
-### Task Structure
-
-Each task is a self-contained unit with bite-sized TDD steps:
-
-````markdown
-### Task N: [Component Name]
-
-**Files:**
-- Create: `exact/path/to/file`
-- Modify: `exact/path/to/existing`
-- Test: `tests/exact/path/to/test`
-
-- [ ] **Step 1: Write the failing test**
-[Actual test code]
-
-- [ ] **Step 2: Run test to verify it fails**
-Run: `exact command`
-Expected: FAIL with "specific error"
-
-- [ ] **Step 3: Write minimal implementation**
-[Actual implementation code]
-
-- [ ] **Step 4: Run test to verify it passes**
-Run: `exact command`
-Expected: PASS
-
-- [ ] **Step 5: Commit**
-```bash
-git add [specific files]
-git commit -m "feat: description"
-```
-````
-
-### No Placeholders
-
-Every step must contain actual content. These are plan failures — never write them:
-- "TBD", "TODO", "implement later", "fill in details"
-- "Add appropriate error handling" / "add validation" / "handle edge cases"
-- "Write tests for the above" (without actual test code)
-- "Similar to Task N" (repeat the content)
-- Steps that describe what to do without showing how
-
-### Plan Self-Review
-
-After writing the plan:
-
-1. **Spec coverage** — Every spec requirement maps to a task. List any gaps and add missing tasks.
-2. **Placeholder scan** — Search for red flags from the No Placeholders list. Fix them.
-3. **Type consistency** — Types, method signatures, and property names match across tasks.
-
-Fix issues inline immediately. Then commit and ask the user to confirm.
-
-### User Plan Gate
-
-> "Plan written and committed to `<path>`. Please review — any changes before we proceed?"
-
-Wait for user response. Revise if requested.
+`team-plan` owns plan generation, plan self-review, and the user plan gate. When `team-plan` returns and the plan has been approved, proceed to Execution Handoff.
 
 ## Execution Handoff
 
@@ -227,7 +146,7 @@ If Yes: invoke the team-driven-development skill. Do NOT invoke any superpowers 
 ## Key Principles
 
 - **Infer, don't interrogate** — Use codebase context to fill in gaps. Only ask what you truly cannot infer.
-- **Full-quality output** — The process is light; the documents are not. Spec and plan meet the same standard as brainstorming + writing-plans.
+- **Full-quality output** — The process is light; the spec is not. Spec meets the same standard as brainstorming.
 - **One question at a time** — When you do need to ask, keep it focused. Multiple-choice preferred.
 - **YAGNI unless deferred** — Don't design features the user didn't ask for. But when the user defers a decision to you, choose the most comprehensive approach that fully satisfies all potential requirements.
-- **Self-contained** — This skill does not depend on or invoke superpowers skills.
+- **Self-contained on spec, delegated on plan** — Spec generation is in-skill; plan generation is delegated to team-plan. No dependency on superpowers skills.

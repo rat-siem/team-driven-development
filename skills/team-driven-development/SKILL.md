@@ -11,7 +11,7 @@ Execute implementation plans by orchestrating specialized subagents. The Lead (y
 
 ## When to Use
 
-You have an implementation plan to execute. No plan → suggest the `quick-plan` skill first. Simple plans automatically trigger Lite Mode suggestion.
+You have an implementation plan to execute. No plan → suggest the `quick-brainstorm` skill first. Simple plans automatically trigger Lite Mode suggestion.
 
 ## Arguments
 
@@ -19,7 +19,7 @@ You have an implementation plan to execute. No plan → suggest the `quick-plan`
 - `--lite` → skip triage, use Lite Mode. Warn if Quick Score > 1.
 - `--full` → skip triage, use Full Mode.
 
-**No plan available:** Suggest `quick-plan` skill. If accepted, invoke with the user's original request as argument. Capture the user's verbatim message before searching for a plan file — this is the `original_request`. Include any additional context (file paths, errors, descriptions) the user provided.
+**No plan available:** Suggest `quick-brainstorm` skill. If accepted, invoke with the user's original request as argument. Capture the user's verbatim message before searching for a plan file — this is the `original_request`. Include any additional context (file paths, errors, descriptions) the user provided.
 
 ## The Team
 
@@ -111,6 +111,17 @@ If output contains `/worktrees/` → **Worktree Mode**:
 
 **Proposal (auto, Score ≤ 1):** "This plan has [N] tasks touching [M] files — lightweight enough for direct execution. Use Lite Mode? **Yes** — direct execution + single review. **No** — full team process."
 
+## Phase A-0.5: Sprints Gate (F4)
+
+After Triage, before reading the plan (Full Mode only): check that the plan's referenced `sprints/<topic>/` directory exists.
+
+- If present → proceed to Phase A.
+- If missing → prompt: `sprints/<topic>/ not found. Run sprint-master now? [yes/no]`.
+  - On `yes` → invoke `/team-driven-development:sprint-master <spec-path> <plan-path>` via the Skill tool. The spec path is the `**Spec:**` line in the plan header; the plan path is the current plan. Proceed on success.
+  - On `no` → abort with `Execution requires Sprint Contract files under sprints/<topic>/. Generate them or invoke with --lite to skip Sprint Contract enforcement.`
+
+Lite Mode does not require `sprints/<topic>/` and skips the F4 gate.
+
 ## Lite Mode
 
 Skip Phases A–C. Lead implements directly.
@@ -162,40 +173,9 @@ Read plan once. Extract ALL tasks with full text, file paths, test commands, cri
 - **Logical:** A sets up infra B needs → A before B
 - **Independent:** Different directories, no shared imports → parallel candidate
 
-### A-3: Effort Scoring
+### A-5: Read Sprint Contracts
 
-| Factor | +1 when |
-|--------|---------|
-| Files | 4+ modified |
-| Directory | core/, shared/, security/, auth/ |
-| Keywords | architecture, migration, security, design, refactor |
-| Cross-cutting | Touches code other tasks also touch |
-| New subsystem | Creating new module/package |
-
-Score 0-1 → haiku. Score 2 → sonnet. Score 3+ → opus.
-
-### A-4: Reviewer Profile
-
-| Characteristics | Profile | Action |
-|----------------|---------|--------|
-| 1-2 files, logic only, no UI | `static` | Lead reads diff |
-| Tests, multi-file, integration | `runtime` | Reviewer agent |
-| UI, CSS, visual | `browser` | Reviewer + browser |
-
-### A-5: Sprint Contract Generation
-
-Generate per task using `templates/sprint-contract-template.md` as structure. Lead fills task-specific sections only. **Incorporate all applicable Domain Guidelines into acceptance criteria** — Reviewers do not receive Guidelines separately.
-
-### A-5.5: Contract QA
-
-Validate each contract:
-1. Success Criteria specific and verifiable (NG: "Code works" / OK: "GET /api/users returns 200 with JSON array")
-2. Test commands include file paths/filters
-3. At least one Non-Goal defined
-4. Profile matches task characteristics
-5. Dependencies stated as preconditions
-
-Fail → fix once → still failing → escalate.
+Read `sprints/<topic>/common.md` and each `sprints/<topic>/task-N.md`. These files are authoritative for Reviewer Profile, Effort Score, Success Criteria, Non-Goals, and Validation. Do not regenerate.
 
 ### A-6: Team Composition
 
@@ -216,7 +196,7 @@ Effort 3+ AND design decisions → dispatch Architect with task text, codebase c
 
 ### B-2: Dispatch Worker
 
-Send: full task text, Sprint Contract, Domain Guidelines content (from Contract's Guidelines section), design brief (if any), codebase context. Model per effort score. Worktree isolation.
+Send: full task text, `sprints/<topic>/common.md` + `sprints/<topic>/task-N.md` content, Domain Guidelines content (from common.md's Domain Guidelines section), design brief (if any), codebase context. Model per the task-N.md Effort Score. Worktree isolation.
 
 **Codebase Context rules:**
 - Full content: only files Worker must modify
@@ -240,9 +220,9 @@ Never force retry without changes.
 
 ### B-4: Review
 
-**static (Lead):** Read diff → evidence table per criterion (MET/NOT_MET + evidence) → verify non-goals → L-prefixed findings in Ledger → verdict.
+**static (Lead):** Read diff → evidence table per Success Criterion from `sprints/<topic>/task-N.md` (MET/NOT_MET + evidence) → verify Non-Goals → L-prefixed findings in Ledger → verdict.
 
-**runtime/browser (Reviewer agent):** Dispatch with diff + Sprint Contract. Reviewer runs validation + checks integration (+ browser items for browser profile). Template: `./prompts/reviewer-prompt.md`
+**runtime/browser (Reviewer agent):** Dispatch with diff + `sprints/<topic>/common.md` + `sprints/<topic>/task-N.md`. Reviewer runs validation + checks integration (+ browser items for browser profile). Template: `./prompts/reviewer-prompt.md`
 
 **Ledger integration (all profiles):** Transfer W-prefixed and R/L-prefixed findings → record dispositions → verify critical/major all `fixed`.
 

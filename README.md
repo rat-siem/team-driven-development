@@ -56,7 +56,10 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 
 ## Key Features
 
-- **Quick Plan** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Use `/quick-plan` or let team-driven-development suggest it when no plan exists.
+- **Quick Brainstorm** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Hands off via `quick-brainstorm → team-plan → sprint-master → team-driven-development`. Use `/quick-brainstorm` or let team-driven-development suggest it when no plan exists.
+- **Deep Brainstorm** — Rigorous three-phase variant (Distill / Challenge / Harden) for vague or high-stakes requirements. Produces an extended spec with Decision Log, Unresolved Items, and Checklist Snapshot. Use `/deep-brainstorm` when decision reasoning must survive into the spec.
+- **Team Plan** — In-plugin implementation-plan writer. Consumes an approved spec at `docs/team-dd/specs/` and emits a token-optimized plan under `docs/team-dd/plans/`, then invokes `sprint-master` to generate Sprint Contract files. Invoke as `/team-plan <spec-path>`.
+- **Sprint Master** — Sole owner of Sprint Contract generation. Reads a spec + plan and writes `sprints/<topic>/common.md` and `task-N.md`. Invoked by `team-plan` after plan generation, directly via `/sprint-master <spec-path> <plan-path>`, or via the F4 Sprints Gate in team-driven-development.
 - **Solo Review** — Standalone code review using the Reviewer agent. Auto-detects review target (staged, uncommitted, or branch diff), adapts criteria (Sprint Contract → plan-derived → generic), and produces structured verdicts. Use `/solo-review` for on-demand review without the full team workflow.
 - **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process. Use `--lite` or `--full` to skip triage and select mode directly.
 - **Dynamic team composition** — Roles assigned per task based on complexity and type
@@ -84,16 +87,21 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 1. Read the plan and calculate a Quick Score (task count, file count, domain spread, design keywords)
 2. Quick Score ≤ 1 → propose **Lite Mode** to the user
 3. User accepts → Lead implements directly with a single Reviewer pass at the end
-4. User declines or Quick Score > 1 → proceed to Full Mode (Phase A)
+4. User declines or Quick Score > 1 → proceed to Phase A-0.5 (Full Mode)
+
+### Phase A-0.5: Sprints Gate (F4)
+1. Check that `sprints/<topic>/` exists for the plan
+2. If present → proceed to Phase A
+3. If missing → prompt: `sprints/<topic>/ not found. Run sprint-master now? [yes/no]`
+4. On `yes` → invoke `/team-driven-development:sprint-master <spec-path> <plan-path>`, then proceed to Phase A
+5. On `no` → abort with guidance to generate Sprint Contract files or use `--lite`
+6. Lite Mode skips this gate
 
 ### Phase A: Pre-delegate (Full Mode)
 1. Read and extract all tasks from the plan
-2. Analyze dependencies dynamically
-3. Score effort per task
-4. Select reviewer profile per task
-5. Generate Sprint Contracts
-6. **Contract QA** — Validate each contract (verifiable criteria, test commands, non-goals, profile match, dependency preconditions)
-7. Determine team composition
+2. Read `sprints/<topic>/common.md` and each `task-N.md` (authoritative; do not regenerate)
+3. Analyze dependencies dynamically
+4. Determine team composition
 
 ### Phase B: Delegate (per task)
 1. Dispatch Architect for design brief (if needed)
@@ -150,15 +158,15 @@ claude plugin update team-driven-development
 
 ## Usage
 
-This plugin works best with [Superpowers](https://github.com/obra/superpowers) but can be used standalone.
+This plugin is self-contained — all planning, implementation, and review skills ship with it.
 
-### With Quick Plan (self-contained)
+### With Quick Brainstorm (self-contained)
 
 ```
-/quick-plan <task description> → team-driven-development
+/quick-brainstorm <task description> → team-driven-development
 ```
 
-The `quick-plan` skill generates a spec and plan with minimal dialogue — no superpowers dependency needed. When the plan is ready, it offers to hand off directly to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-plan automatically.
+The `quick-brainstorm` skill generates a spec and plan with minimal dialogue. When the plan is ready, it offers to hand off directly to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-brainstorm automatically.
 
 ### Solo Review (standalone)
 
@@ -180,17 +188,17 @@ Override options:
 /solo-review --contract path/to/contract.md  # use specific Sprint Contract
 ```
 
-### With Superpowers (thorough)
+### With Deep Brainstorm (thorough)
 
 ```
-brainstorming → writing-plans → team-driven-development
+deep-brainstorm → team-plan → team-driven-development
 ```
 
-For tasks that need deep exploration — multiple approach comparisons, section-by-section design approval, visual mockups — use the full Superpowers flow. The `writing-plans` skill produces a plan. When choosing an execution method, select Team-Driven Development for complex plans that benefit from role specialization.
+For vague or high-stakes requirements that need deep exploration — multiple approach comparisons, section-by-section design approval, Decision Log preservation — use `deep-brainstorm`. It drives Distill / Challenge / Harden phases and produces an extended spec. The approved spec flows into `team-plan`, which generates the implementation plan and invokes `sprint-master` to produce Sprint Contract files. Execute the plan with Team-Driven Development for complex work that benefits from role specialization.
 
 ### Standalone
 
-Write a plan in the Superpowers task format:
+Write a plan in the team-plan task format:
 
 ````markdown
 ### Task 1: [Name]
@@ -247,7 +255,7 @@ Scoring factors: file count, directory risk, keywords, cross-cutting concerns, n
 
 ## Design Note: Intentional YAGNI Violation on Deferral
 
-When a user defers a decision during quick-plan's clarification phase ("either is fine", "I'll leave it to you"), the skill deliberately violates the YAGNI principle. Instead of choosing the minimal/conservative option, it selects the most comprehensive approach that fully satisfies all potential requirements — even if this results in broader scope than the minimal interpretation.
+When a user defers a decision during quick-brainstorm's clarification phase ("either is fine", "I'll leave it to you"), the skill deliberately violates the YAGNI principle. Instead of choosing the minimal/conservative option, it selects the most comprehensive approach that fully satisfies all potential requirements — even if this results in broader scope than the minimal interpretation.
 
 This is an explicit, intentional design choice. The rationale: when a user delegates a decision, they are trusting the agent to produce the strongest possible design. A narrow plan that leaves gaps is worse than a slightly broader plan that covers edge cases. The deferred decision and reasoning are recorded in the spec for transparency.
 
