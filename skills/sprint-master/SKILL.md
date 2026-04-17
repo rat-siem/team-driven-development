@@ -155,11 +155,11 @@ Score 0-1 → haiku. Score 2 → sonnet. Score 3+ → opus.
 
 ### Reviewer Profile Selection
 
-| Characteristics | Profile |
-|----------------|---------|
-| 1-2 files, logic only, no UI | `static` |
-| Tests, multi-file, integration | `runtime` |
-| UI, CSS, visual | `browser` |
+| Characteristics | Profile | Action |
+|----------------|---------|--------|
+| 1-2 files, logic only, no UI | `static` | Lead reads diff |
+| Tests, multi-file, integration | `runtime` | Reviewer agent |
+| UI, CSS, visual | `browser` | Reviewer + browser |
 
 ## Contract QA Self-Review
 
