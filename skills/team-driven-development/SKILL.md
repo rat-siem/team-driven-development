@@ -263,11 +263,7 @@ Never force retry without changes.
 
 ### Verdict Rules
 
-| Severity | Impact |
-|----------|--------|
-| critical | REQUEST_CHANGES — security, data loss, production failure |
-| major | REQUEST_CHANGES — spec mismatch, test failure, feature breakage |
-| minor/recommendation | No impact (APPROVE) |
+Severity → verdict mapping is defined in `agents/reviewer.md`. The Lead applies the same rules when running a static-profile review.
 
 ### B-5: Fix Loop (max 3 rounds)
 REQUEST_CHANGES → issues to Worker → fix in same worktree → re-review → APPROVE or 3 rounds → escalate.
