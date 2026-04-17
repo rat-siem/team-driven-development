@@ -182,10 +182,10 @@ claude plugin update team-driven-development
 ### Superpowers と併用（じっくり）
 
 ```
-brainstorming → writing-plans → team-driven-development
+brainstorming → team-plan → team-driven-development
 ```
 
-深い探索が必要なタスク — 複数アプローチの比較、セクションごとの設計承認、ビジュアルモックアップ — には Superpowers のフルフローを使用してください。`writing-plans` スキルがプランを出力します。実行方法の選択時に、役割分担が効果的な複雑なプランで Team-Driven Development を選択してください。
+深い探索が必要なタスク — 複数アプローチの比較、セクションごとの設計承認、ビジュアルモックアップ — には `deep-brainstorm` スキルを使用してください。承認済み spec から `team-plan` スキルが実装プランを出力します。役割分担が効果的な複雑なプランで Team-Driven Development を実行方法として選択してください。
 
 ### 単体で使用
 

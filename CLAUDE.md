@@ -3,7 +3,7 @@
 ## Overview
 
 An implementation plugin that drives sub-agents through Lead/Worker/Reviewer/Architect role assignments.
-Executes plans created by the Superpowers `writing-plans` skill using a team composition.
+Executes plans created by the `team-plan` skill (or, for historical specs, the legacy Superpowers planning skill) using a team composition.
 
 ## Architecture
 

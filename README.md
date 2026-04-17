@@ -183,10 +183,10 @@ Override options:
 ### With Superpowers (thorough)
 
 ```
-brainstorming → writing-plans → team-driven-development
+brainstorming → team-plan → team-driven-development
 ```
 
-For tasks that need deep exploration — multiple approach comparisons, section-by-section design approval, visual mockups — use the full Superpowers flow. The `writing-plans` skill produces a plan. When choosing an execution method, select Team-Driven Development for complex plans that benefit from role specialization.
+For tasks that need deep exploration — multiple approach comparisons, section-by-section design approval, visual mockups — use the `deep-brainstorm` skill. The `team-plan` skill produces the implementation plan from the approved spec. Execute with Team-Driven Development for complex plans that benefit from role specialization.
 
 ### Standalone
 

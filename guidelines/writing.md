@@ -57,7 +57,7 @@ Optimize the content, not the English — abbreviations only where unambiguous.
 
 ### Plans (`docs/team-dd/plans/YYYY-MM-DD-<topic>.md`)
 
-- Start with the `writing-plans` header (Goal / Architecture / Tech Stack).
+- Start with the `team-plan` header (Goal / Architecture / Tech Stack / Spec).
 - Tasks use `- [ ]` checkbox syntax.
 - Each step includes exact file paths and runnable commands in fenced blocks.
 
@@ -73,7 +73,7 @@ Optimize the content, not the English — abbreviations only where unambiguous.
 ## Terminology
 
 - **Skill**: markdown in `skills/<name>/SKILL.md`, invoked `/<name>`.
-- **Plan**: output of `writing-plans` / `quick-plan`.
+- **Plan**: output of `team-plan` (invoked directly or via `quick-plan` / `deep-brainstorm`).
 - **Spec**: output of `brainstorming` / `deep-brainstorm` / `quick-plan`.
 - **Lead / Worker / Reviewer / Architect**: team roles (capitalized).
 - **Sprint Contract**: per-task acceptance contract (capitalized).
