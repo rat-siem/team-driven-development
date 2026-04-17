@@ -55,7 +55,10 @@
 
 ## 主な機能
 
-- **Quick Brainstorm** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。`/quick-brainstorm` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
+- **Quick Brainstorm** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。引き渡しは `quick-brainstorm → team-plan → sprint-master → team-driven-development`。`/quick-brainstorm` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
+- **Deep Brainstorm** — 曖昧または影響の大きい要件向けの厳密な3フェーズ版（Distill / Challenge / Harden）。Decision Log、Unresolved Items、Checklist Snapshot を含む拡張 spec を生成。判断の根拠を spec に残したい場合に `/deep-brainstorm` を使用。
+- **Team Plan** — プラグイン内蔵の実装プラン生成器。`docs/team-dd/specs/` の承認済み spec を読み、`docs/team-dd/plans/` にトークン最適化された plan を出力したのち、`sprint-master` を呼び出して Sprint Contract ファイルを生成する。`/team-plan <spec-path>` で呼び出す。
+- **Sprint Master** — Sprint Contract 生成の唯一の所有者。spec と plan から `sprints/<topic>/common.md` と `task-N.md` を書き出す。`team-plan` が plan 生成後に呼び出すほか、`/sprint-master <spec-path> <plan-path>` で直接呼び出し、または team-driven-development の F4 Sprints Gate から呼び出される。
 - **Solo Review** — Reviewer エージェントによる単体コードレビュー。レビュー対象を自動検出（ステージ済み、未コミット、ブランチ diff）し、基準を適応（Sprint Contract → プラン派生 → 汎用）して構造化された判定を出力。`/solo-review` でフルチームワークフローなしにレビューを実行。
 - **適応的プロセス選択** — シンプルなプランには Lite Mode を提案、複雑なプランにはフルチームプロセスを使用。`--lite` / `--full` でトリアージをスキップしてモードを直接選択可能。
 - **動的チーム編成** — タスクの複雑度と種類に応じてロールを割り当て

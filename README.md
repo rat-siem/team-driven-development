@@ -56,7 +56,10 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 
 ## Key Features
 
-- **Quick Brainstorm** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Use `/quick-brainstorm` or let team-driven-development suggest it when no plan exists.
+- **Quick Brainstorm** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Hands off via `quick-brainstorm → team-plan → sprint-master → team-driven-development`. Use `/quick-brainstorm` or let team-driven-development suggest it when no plan exists.
+- **Deep Brainstorm** — Rigorous three-phase variant (Distill / Challenge / Harden) for vague or high-stakes requirements. Produces an extended spec with Decision Log, Unresolved Items, and Checklist Snapshot. Use `/deep-brainstorm` when decision reasoning must survive into the spec.
+- **Team Plan** — In-plugin implementation-plan writer. Consumes an approved spec at `docs/team-dd/specs/` and emits a token-optimized plan under `docs/team-dd/plans/`, then invokes `sprint-master` to generate Sprint Contract files. Invoke as `/team-plan <spec-path>`.
+- **Sprint Master** — Sole owner of Sprint Contract generation. Reads a spec + plan and writes `sprints/<topic>/common.md` and `task-N.md`. Invoked by `team-plan` after plan generation, directly via `/sprint-master <spec-path> <plan-path>`, or via the F4 Sprints Gate in team-driven-development.
 - **Solo Review** — Standalone code review using the Reviewer agent. Auto-detects review target (staged, uncommitted, or branch diff), adapts criteria (Sprint Contract → plan-derived → generic), and produces structured verdicts. Use `/solo-review` for on-demand review without the full team workflow.
 - **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process. Use `--lite` or `--full` to skip triage and select mode directly.
 - **Dynamic team composition** — Roles assigned per task based on complexity and type
