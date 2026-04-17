@@ -1,13 +1,13 @@
 ---
-name: quick-plan
+name: quick-brainstorm
 description: Lightweight planning skill — generates full-quality spec with minimal dialogue and delegates plan generation to team-plan. Use when requirements are mostly clear but need a spec + plan before execution.
 ---
 
-# Quick Plan
+# Quick Brainstorm
 
-Generate a full-quality spec with minimal dialogue, then hand off to `team-plan` for implementation-plan generation. Unlike brainstorming (deep-dive questions, approach comparison, section-by-section approval), quick-plan infers what it can from context and only asks about genuinely ambiguous points.
+Generate a full-quality spec with minimal dialogue, then hand off to `team-plan` for implementation-plan generation. Unlike brainstorming (deep-dive questions, approach comparison, section-by-section approval), quick-brainstorm infers what it can from context and only asks about genuinely ambiguous points.
 
-**Announce at start:** "I'm using quick-plan to generate a spec and hand off to team-plan."
+**Announce at start:** "I'm using quick-brainstorm to generate a spec and hand off to team-plan."
 
 <HARD-GATE>
 Do NOT write any implementation code or invoke any execution skill until the user has approved both the spec (owned by this skill) and the plan (owned by team-plan).
@@ -26,7 +26,7 @@ Do NOT write any implementation code or invoke any execution skill until the use
 ## Process Flow
 
 ```dot
-digraph quick_plan {
+digraph quick_brainstorm {
     "Read context" [shape=box];
     "Unclear requirements?" [shape=diamond];
     "Ask question (one at a time)" [shape=box];
