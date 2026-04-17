@@ -173,3 +173,27 @@ Fix findings inline. Do not dispatch a subagent.
 - **`Profile` value not `static`/`runtime`/`browser`:** stop. Emit `Invalid Profile: <value>. Allowed: static, runtime, browser.`
 - **Unfixable contradiction** (task references an identifier no task defines): stop. Report the contradiction; do not write a partial plan.
 - **Secrets detected:** redact in the plan and emit a warning line in the plan header. Do not abort. Do not modify the spec.
+
+## User Plan Gate
+
+> "Plan written and committed to `<path>`. Please review — any changes before we proceed?"
+
+Wait for the user response. Revise if requested.
+
+## Execution Handoff
+
+After plan confirmation:
+
+> **Plan complete and saved to `<path>`. Execute with team-driven-development?**
+> - **Yes** — Invoke team-driven-development to execute the plan
+> - **No** — End here (plan is saved for later)
+
+If Yes, invoke the `team-driven-development` skill. Do NOT invoke any superpowers skill.
+
+## Key Principles
+
+- **Inline what executes; reference what explains.** Workers need code and commands at hand; rationale belongs in the spec.
+- **Sprint Contract as common plus delta.** Reviewers decide from the plan alone.
+- **Fail fast on missing contract.** No interim logic; `sprint-master` is the follow-up.
+- **English-only canonical.** Translation only on explicit user request.
+- **Self-contained.** No dependency on superpowers skills at runtime.
