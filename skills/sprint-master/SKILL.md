@@ -129,3 +129,34 @@ Fields:
 ````
 
 Fields are disjoint from `common.md` (D-strict). `task-N.md` never overrides `common.md`. `Non-Goals` requires at least one entry. `Runtime Validation` is omitted when Profile is `static`. `Browser Validation` is present only when Profile is `browser`.
+
+## Generation Flow
+
+1. Read the spec at `<spec-path>`.
+2. Read the plan at `<plan-path>`.
+3. Parse plan `### Task N:` sections. Extract name, file paths, and test commands.
+4. Derive `<topic>` and target directory `sprints/<topic>/`. Validate path stays within repo root.
+5. For each task: apply **Effort Scoring** and **Reviewer Profile Selection** below; derive Success Criteria, Non-Goals, and Validation.
+6. Derive `common.md` content from the spec's Design + Testing Strategy sections and the detected Domain Guidelines.
+7. Run Contract QA self-review (see below). Max two retry rounds.
+8. Write `common.md` and all `task-N.md` in parallel.
+
+### Effort Scoring
+
+| Factor | +1 when |
+|--------|---------|
+| Files | 4+ modified |
+| Directory | core/, shared/, security/, auth/ |
+| Keywords | architecture, migration, security, design, refactor |
+| Cross-cutting | Touches code other tasks also touch |
+| New subsystem | Creating new module/package |
+
+Score 0-1 → haiku. Score 2 → sonnet. Score 3+ → opus.
+
+### Reviewer Profile Selection
+
+| Characteristics | Profile |
+|----------------|---------|
+| 1-2 files, logic only, no UI | `static` |
+| Tests, multi-file, integration | `runtime` |
+| UI, CSS, visual | `browser` |
