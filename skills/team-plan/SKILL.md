@@ -75,3 +75,80 @@ digraph team_plan {
 - Single plan file at `docs/team-dd/plans/YYYY-MM-DD-<topic>.md`.
 - `<topic>` = spec filename with the leading `YYYY-MM-DD-` and trailing `-design` removed.
 - English only. Translation files (`docs/team-dd/plans/YYYY-MM-DD-<topic>.<lang>.md`) are created only when the user requests a translation during confirmation.
+
+## Plan File Structure
+
+````markdown
+# <Feature> Implementation Plan
+
+> **For agentic workers:** Use team-driven-development to execute this plan.
+
+**Goal:** <1 sentence>
+**Architecture:** <2-3 sentences>
+**Tech Stack:** <key technologies>
+**Spec:** <relative path to spec> (authoritative; consult for rationale/decisions)
+
+---
+
+## Sprint Contract (Common)
+
+- Profile: static | runtime | browser
+- Shared Criteria:
+  - <criterion 1>
+  - <criterion 2>
+
+> Task-level `Sprint Contract:` sections OVERRIDE these defaults per key.
+
+---
+
+## File Structure
+
+| File | Status | Responsibility |
+| --- | --- | --- |
+| <path> | Create / Modify | <one-line responsibility> |
+
+---
+
+### Task N: <name>
+
+**Files:**
+- Create: <path>
+- Modify: <path>
+- Test: <path>
+
+**Spec ref:** <spec-path>#<section-heading>
+
+**Sprint Contract:** <task-level delta, one line per overridden key; omit the section entirely when no delta>
+
+- [ ] Step 1: Write the failing test
+  ```<lang>
+  <actual test code>
+  ```
+- [ ] Step 2: Run test to verify it fails
+  Run: `<exact command>`
+  Expected: FAIL with "<specific message>"
+- [ ] Step 3: Write minimal implementation
+  ```<lang>
+  <actual code>
+  ```
+- [ ] Step 4: Run test to verify it passes
+  Run: `<exact command>`
+  Expected: PASS
+- [ ] Step 5: Commit
+  ```bash
+  git add <files>
+  git commit -m "<message>"
+  ```
+````
+
+## Inline Content Rules
+
+- Tests, implementation code, and shell commands are ALWAYS inlined. Workers execute from the plan alone.
+- Rationale, Decision Log context, and trade-offs are NEVER inlined. Reference spec sections instead.
+- `Spec ref` MUST be a heading anchor (e.g., `<spec-path>#error-handling`). Line-range refs are rejected in self-review.
+
+## Sprint Contract Override Rules
+
+- The common block lives once, immediately after the plan header.
+- Per-task overrides list deltas only; do not restate the common block.
+- Tasks with no delta omit the `Sprint Contract:` section entirely (absence means "use common as-is").
