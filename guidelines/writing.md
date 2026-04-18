@@ -23,6 +23,7 @@ Optimize the content, not the English — abbreviations only where unambiguous.
 
 - All `.md` files in this repo: English. Exception: `*.ja.md` user-facing translations.
 - Reason: English tokenizes ~2-3x tighter than Japanese; single language across agent-facing files removes ambiguity.
+- **Source vs. runtime.** Source files (including `SKILL.md`) are English for tokenization and ambiguity reasons. At runtime, user-facing natural-language strings emitted by a skill (announce, gates, status, errors) must render in the user's conversation language — see the `## Language Policy` block inside each `SKILL.md`.
 
 ## Tone
 
