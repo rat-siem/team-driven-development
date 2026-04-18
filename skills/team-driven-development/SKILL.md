@@ -9,6 +9,10 @@ Execute implementation plans by orchestrating specialized subagents. The Lead (y
 
 **Why teams:** Role specialization prevents context pollution and enables parallel execution.
 
+## Language Policy
+
+Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
+
 ## When to Use
 
 You have an implementation plan to execute. No plan → suggest the `quick-brainstorm` skill first. Simple plans automatically trigger Lite Mode suggestion.

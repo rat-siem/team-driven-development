@@ -15,6 +15,10 @@ Unlike `brainstorming`: stronger pushback, Claude-surfaced concerns, external re
 No implementation skill, code, or scaffolding until user approves the spec. No phase advancement until owned items are `confirmed`/`N/A`. No spec file until all ten base items resolved AND design approved.
 </HARD-GATE>
 
+## Language Policy
+
+Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
+
 ## Checklist
 
 Create a task for each item and complete in order:

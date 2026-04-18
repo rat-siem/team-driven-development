@@ -9,6 +9,10 @@ Run the team-driven-development Reviewer as a standalone agent — no plan, no t
 
 **Announce at start:** "I'm using solo-review to review the current changes."
 
+## Language Policy
+
+Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
+
 ## Arguments
 
 Parse the skill arguments to determine review target and options:

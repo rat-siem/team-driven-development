@@ -13,6 +13,10 @@ Write a team-driven-development implementation plan from a spec. Replaces `super
 Do NOT write any implementation code or invoke any execution skill until the user has approved the plan. If the spec or plan cannot be parsed, stop and emit the matching error in Error Handling.
 </HARD-GATE>
 
+## Language Policy
+
+Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
+
 ## Checklist
 
 1. **Read spec** — open the file at the provided path. Fail if missing.
