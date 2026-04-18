@@ -41,11 +41,7 @@ The canonical Language Policy block (identical in all six files):
 ````markdown
 ## Language Policy
 
-Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
-
-Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
-
-Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
+Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
 ````
 
 - [ ] Step 1: Confirm pre-edit state — none of the six files currently contain a `## Language Policy` heading.
@@ -76,11 +72,7 @@ Detection: match recent natural-language input; pure code/commands → keep prio
 
   ## Language Policy
 
-  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
-
-  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
-
-  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
+  Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
 
   ## Checklist
   ````
@@ -104,11 +96,7 @@ Detection: match recent natural-language input; pure code/commands → keep prio
 
   ## Language Policy
 
-  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
-
-  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
-
-  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
+  Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
 
   ## Checklist
   ````
@@ -132,11 +120,7 @@ Detection: match recent natural-language input; pure code/commands → keep prio
 
   ## Language Policy
 
-  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
-
-  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
-
-  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
+  Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
 
   ## Checklist
   ````
@@ -158,11 +142,7 @@ Detection: match recent natural-language input; pure code/commands → keep prio
 
   ## Language Policy
 
-  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
-
-  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
-
-  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
+  Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
 
   ## Checklist
   ````
@@ -184,11 +164,7 @@ Detection: match recent natural-language input; pure code/commands → keep prio
 
   ## Language Policy
 
-  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
-
-  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
-
-  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
+  Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
 
   ## Arguments
   ````
@@ -212,11 +188,7 @@ Detection: match recent natural-language input; pure code/commands → keep prio
 
   ## Language Policy
 
-  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
-
-  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
-
-  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
+  Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
 
   ## When to Use
   ````
@@ -227,9 +199,9 @@ Detection: match recent natural-language input; pure code/commands → keep prio
   set -e
   for f in skills/quick-brainstorm/SKILL.md skills/deep-brainstorm/SKILL.md skills/team-plan/SKILL.md skills/sprint-master/SKILL.md skills/solo-review/SKILL.md skills/team-driven-development/SKILL.md; do
     grep -qF "## Language Policy" "$f"
-    grep -qF "Translate user-facing prose" "$f"
+    grep -qF "Render user-facing prose" "$f"
     grep -qF "Keep literal: commands, paths" "$f"
-    grep -qF "Detection: match recent natural-language input" "$f"
+    grep -qF "Default to match recent user input" "$f"
   done
   for f in skills/quick-brainstorm/SKILL.md skills/deep-brainstorm/SKILL.md skills/team-plan/SKILL.md skills/sprint-master/SKILL.md; do
     awk '/^## Language Policy$/{lp=NR} /^## Checklist$/{ch=NR} END{exit !(lp && ch && lp<ch)}' "$f"
