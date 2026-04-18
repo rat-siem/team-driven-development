@@ -35,7 +35,7 @@ When the user explicitly requests a translation of a generated document, write t
 4. **Spec self-review** — placeholder/consistency/scope/ambiguity/Sprint-Contract check, fix inline
 5. **User confirms spec** — wait for approval, revise if requested
 6. **Hand off to `team-plan`** — invoke `/team-driven-development:team-plan <spec-path>`; team-plan owns plan generation, self-review, and the user plan gate
-7. **Propose execution** — after team-plan returns and the plan is approved, offer team-driven-development handoff
+7. **Return** — `team-plan` owns the combined plan/execute gate; quick-brainstorm completes on team-plan return
 
 ## Process Flow
 
@@ -48,8 +48,7 @@ digraph quick_brainstorm {
     "Generate spec" [shape=box];
     "Spec self-review" [shape=box];
     "User approves spec?" [shape=diamond];
-    "Hand off to team-plan" [shape=box];
-    "Propose execution" [shape=doublecircle];
+    "Hand off to team-plan" [shape=doublecircle];
 
     "Read context" -> "Unclear requirements?";
     "Unclear requirements?" -> "Ask question (one at a time)" [label="yes"];
@@ -61,7 +60,6 @@ digraph quick_brainstorm {
     "Spec self-review" -> "User approves spec?";
     "User approves spec?" -> "Generate spec" [label="revise"];
     "User approves spec?" -> "Hand off to team-plan" [label="yes"];
-    "Hand off to team-plan" -> "Propose execution";
 }
 ```
 
@@ -145,17 +143,7 @@ After the user approves the spec, invoke `team-plan` with the spec path:
 /team-driven-development:team-plan <spec-path>
 ```
 
-`team-plan` owns plan generation, plan self-review, and the user plan gate. When `team-plan` returns and the plan has been approved, proceed to Execution Handoff.
-
-## Execution Handoff
-
-After plan confirmation:
-
-> **Plan complete and saved to `<path>`. Execute with team-driven-development?**
-> - **Yes** — Invoke team-driven-development to execute the plan
-> - **No** — End here (plan is saved for later)
-
-If Yes: invoke the team-driven-development skill. Do NOT invoke any superpowers skill.
+`team-plan` owns plan generation, plan self-review, and the combined plan/execute gate (including invocation of `team-driven-development` on confirmation). quick-brainstorm completes when `team-plan` returns.
 
 ## Key Principles
 
