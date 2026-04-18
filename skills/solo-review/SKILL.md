@@ -76,7 +76,7 @@ If `--contract` argument provided or a Sprint Contract is found in context:
 - Use the contract directly
 - Follow exact Sprint Contract checklist format
 - This is identical to team-driven-development Phase B-4 review
-- Preferred contract location: `sprints/<topic>/task-N.md` (produced by `sprint-master`). `--contract` accepts this path directly.
+- Preferred contract location: `docs/team-dd/sprints/<topic>/task-N.md` (produced by `sprint-master`). `--contract` accepts this path directly.
 
 ### Level 2: Plan-Derived Criteria
 

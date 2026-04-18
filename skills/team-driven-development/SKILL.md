@@ -127,14 +127,14 @@ If output contains `/worktrees/` → **Worktree Mode**:
 
 ## Phase A-0.5: Sprints Gate (F4)
 
-After Triage, before reading the plan (Full Mode only): check that the plan's referenced `sprints/<topic>/` directory exists.
+After Triage, before reading the plan (Full Mode only): check that the plan's referenced `docs/team-dd/sprints/<topic>/` directory exists.
 
 - If present → proceed to Phase A.
-- If missing → prompt: `sprints/<topic>/ not found. Run sprint-master now? [yes/no]`.
+- If missing → prompt: `docs/team-dd/sprints/<topic>/ not found. Run sprint-master now? [yes/no]`.
   - On `yes` → dispatch the `sprint-master` subagent via the `Agent` tool (`subagent_type: "team-driven-development:sprint-master"`), passing `<spec-path>` and `<plan-path>` in the prompt. The spec path is the `**Spec:**` line in the plan header; the plan path is the current plan. The agent returns here on completion. Proceed to Phase A on success. On failure, abort with the agent's error message and the re-run command `/team-driven-development:sprint-master <spec-path> <plan-path>`.
-  - On `no` → abort with `Execution requires Sprint Contract files under sprints/<topic>/. Generate them or invoke with --lite to skip Sprint Contract enforcement.`
+  - On `no` → abort with `Execution requires Sprint Contract files under docs/team-dd/sprints/<topic>/. Generate them or invoke with --lite to skip Sprint Contract enforcement.`
 
-Lite Mode does not require `sprints/<topic>/` and skips the F4 gate.
+Lite Mode does not require `docs/team-dd/sprints/<topic>/` and skips the F4 gate.
 
 ## Lite Mode
 
@@ -189,7 +189,7 @@ Read plan once. Extract ALL tasks with full text, file paths, test commands, cri
 
 ### A-5: Read Sprint Contracts
 
-Read `sprints/<topic>/common.md` and each `sprints/<topic>/task-N.md`. These files are authoritative for Reviewer Profile, Effort Score, Success Criteria, Non-Goals, and Validation. Do not regenerate.
+Read `docs/team-dd/sprints/<topic>/common.md` and each `docs/team-dd/sprints/<topic>/task-N.md`. These files are authoritative for Reviewer Profile, Effort Score, Success Criteria, Non-Goals, and Validation. Do not regenerate.
 
 ### A-6: Team Composition
 
@@ -210,7 +210,7 @@ Effort 3+ AND design decisions → dispatch Architect with task text, codebase c
 
 ### B-2: Dispatch Worker
 
-Send: full task text, `sprints/<topic>/common.md` + `sprints/<topic>/task-N.md` content, Domain Guidelines content (from common.md's Domain Guidelines section), design brief (if any), codebase context. Model per the task-N.md Effort Score. Worktree isolation.
+Send: full task text, `docs/team-dd/sprints/<topic>/common.md` + `docs/team-dd/sprints/<topic>/task-N.md` content, Domain Guidelines content (from common.md's Domain Guidelines section), design brief (if any), codebase context. Model per the task-N.md Effort Score. Worktree isolation.
 
 **Codebase Context rules:**
 - Full content: only files Worker must modify
@@ -234,9 +234,9 @@ Never force retry without changes.
 
 ### B-4: Review
 
-**static (Lead):** Read diff → evidence table per Success Criterion from `sprints/<topic>/task-N.md` (MET/NOT_MET + evidence) → verify Non-Goals → L-prefixed findings in Ledger → verdict.
+**static (Lead):** Read diff → evidence table per Success Criterion from `docs/team-dd/sprints/<topic>/task-N.md` (MET/NOT_MET + evidence) → verify Non-Goals → L-prefixed findings in Ledger → verdict.
 
-**runtime/browser (Reviewer agent):** Dispatch with diff + `sprints/<topic>/common.md` + `sprints/<topic>/task-N.md`. Reviewer runs validation + checks integration (+ browser items for browser profile). Template: `./prompts/reviewer-prompt.md`
+**runtime/browser (Reviewer agent):** Dispatch with diff + `docs/team-dd/sprints/<topic>/common.md` + `docs/team-dd/sprints/<topic>/task-N.md`. Reviewer runs validation + checks integration (+ browser items for browser profile). Template: `./prompts/reviewer-prompt.md`
 
 **Ledger integration (all profiles):** Transfer W-prefixed and R/L-prefixed findings → record dispositions → verify critical/major all `fixed`.
 

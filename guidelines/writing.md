@@ -62,7 +62,7 @@ Optimize the content, not the English — abbreviations only where unambiguous.
 - Tasks use `- [ ]` checkbox syntax.
 - Each step includes exact file paths and runnable commands in fenced blocks.
 
-### Sprints (`sprints/<topic>/`)
+### Sprints (`docs/team-dd/sprints/<topic>/`)
 
 - One directory per feature, mirroring the plan filename (without `.md`).
 - `common.md` holds feature-scoped fields: Spec path, Plan path, Shared Criteria, Domain Guidelines.
