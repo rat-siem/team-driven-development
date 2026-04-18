@@ -55,7 +55,7 @@
 
 ## 主な機能
 
-- **Quick Brainstorm** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。引き渡しは `quick-brainstorm → team-plan → sprint-master → team-driven-development`。`/quick-brainstorm` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
+- **Quick Brainstorm** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。引き渡しは `quick-brainstorm → team-plan → team-driven-development`（`team-plan` が内部で `sprint-master` を呼び出して Sprint Contract ファイルを生成する）。`/quick-brainstorm` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
 - **Deep Brainstorm** — 曖昧または影響の大きい要件向けの厳密な3フェーズ版（Distill / Challenge / Harden）。Decision Log、Unresolved Items、Checklist Snapshot を含む拡張 spec を生成。判断の根拠を spec に残したい場合に `/deep-brainstorm` を使用。
 - **Team Plan** — プラグイン内蔵の実装プラン生成器。`docs/team-dd/specs/` の承認済み spec を読み、`docs/team-dd/plans/` にトークン最適化された plan を出力したのち、`sprint-master` を呼び出して Sprint Contract ファイルを生成する。`/team-plan <spec-path>` で呼び出す。
 - **Sprint Master** — Sprint Contract 生成の唯一の所有者。spec と plan から `sprints/<topic>/common.md` と `task-N.md` を書き出す。`team-plan` が plan 生成後に呼び出すほか、`/sprint-master <spec-path> <plan-path>` で直接呼び出し、または team-driven-development の F4 Sprints Gate から呼び出される。
@@ -162,10 +162,10 @@ claude plugin update team-driven-development
 ### Quick Brainstorm と併用（自己完結）
 
 ```
-/quick-brainstorm <タスクの説明> → team-driven-development
+/quick-brainstorm <タスクの説明> → team-plan → team-driven-development
 ```
 
-`quick-brainstorm` スキルは最小限の対話で spec と plan を生成します。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-brainstorm を提案します。
+`quick-brainstorm` スキルは最小限の対話で spec を生成します。spec が承認されると `team-plan` に引き渡され、`team-plan` が plan を生成し、内部で `sprint-master` を呼び出して Sprint Contract ファイルを生成します。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-brainstorm を提案します。
 
 ### Solo Review（単体レビュー）
 
