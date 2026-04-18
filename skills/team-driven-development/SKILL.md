@@ -13,6 +13,16 @@ Execute implementation plans by orchestrating specialized subagents. The Lead (y
 
 Render user-facing prose (announce, gates, status, errors) in the user's language; explicit user request overrides. Keep literal: commands, paths, `<placeholders>`, backtick-wrapped identifiers (e.g., `PASS`, `DONE`), severity/disposition labels, status markers (📌🔍❓⚠), Markdown structure (headings, table column headers). Default to match recent user input; English if no signal.
 
+Files written to disk (specs, plans, contracts, source code) stay English regardless of conversation language. Apply Token Economy to their contents:
+
+- Omit what the LLM can infer from context or adjacent sections.
+- Prefer shortest unambiguous phrasing. Tables/lists beat prose for enumerations.
+- No filler transitions ("Next,", "In summary,", "It's important to note that").
+- No rationale unless it changes behavior in edge cases.
+- Don't restate the same rule twice within one file.
+
+When the user explicitly requests a translation of a generated document, write the English file first, then additionally write a sibling file with an ISO 639-1 language suffix (e.g., `<name>.ja.md` for Japanese, `<name>.fr.md` for French). The English original must always exist; translations are additive, never replacements. Applies to narrative documents (specs, plans, contracts, READMEs); source code stays English (comments included).
+
 ## When to Use
 
 You have an implementation plan to execute. No plan → suggest the `quick-brainstorm` skill first. Simple plans automatically trigger Lite Mode suggestion.
