@@ -9,6 +9,14 @@ Human slash-command wrapper around the `sprint-master` subagent. Dispatches the 
 
 **Announce at start:** "I'm using sprint-master to generate Sprint Contract files."
 
+## Language Policy
+
+Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
+
+Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
+
+Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
+
 ## Checklist
 
 1. **Validate args** — require `<spec-path>` and `<plan-path>`. Missing either → emit `Usage: /team-driven-development:sprint-master <spec-path> <plan-path>` and stop.

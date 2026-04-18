@@ -13,6 +13,14 @@ Generate a full-quality spec with minimal dialogue, then hand off to `team-plan`
 Do NOT write any implementation code or invoke any execution skill until the user has approved both the spec (owned by this skill) and the plan (owned by team-plan).
 </HARD-GATE>
 
+## Language Policy
+
+Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
+
+Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
+
+Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
+
 ## Checklist
 
 1. **Read context** — check relevant files, docs, recent commits related to the request
