@@ -2,7 +2,7 @@
 
 ## Overview
 
-Revise each `SKILL.md`'s `## Language Policy` block to fence file output: files written to disk stay English regardless of conversation language, and must follow Token Economy — inlined directly into the block so no external file lookup is required. Addresses an observed case where `quick-brainstorm`, invoked from a Japanese conversation, wrote a Japanese spec to `docs/team-dd/specs/` against the English-only source rule. Parallel one-paragraph rules are added to file-writing agents (`worker`, `sprint-master`), and `CLAUDE.md` / `guidelines/writing.md` are updated to explicitly treat skill-generated artifacts as source files.
+Revise each `SKILL.md`'s `## Language Policy` block to fence file output: files written to disk stay English regardless of conversation language, and must follow Token Economy — inlined directly into the block so no external file lookup is required. Addresses an observed case where `quick-brainstorm`, invoked from a Japanese conversation, wrote a Japanese spec to `docs/team-dd/specs/` against the English-only source rule. Parallel one-paragraph rules are added to file-writing agents (`worker`, `sprint-master`), and `CLAUDE.md` / `guidelines/writing.md` are updated to explicitly treat skill-generated artifacts as source files. An opt-in "translation sibling" mechanism — triggered only by explicit user request — lets skills additionally emit `<name>.<lang>.md` translations without replacing the English original.
 
 ## Motivation
 
@@ -11,12 +11,13 @@ Revise each `SKILL.md`'s `## Language Policy` block to fence file output: files 
 - **Portability constraint blocks external references.** This plugin installs into `~/.claude/plugins/cache/…/` on end-user machines. At skill runtime, the cwd is the user's own project, where no `guidelines/writing.md` exists. A "see `guidelines/writing.md`" reference inside a SKILL.md would dangle for external users and could cause a runtime read error if the LLM attempts to follow the reference. A "read `CLAUDE.md`" reference is equally unsafe: the user's own `CLAUDE.md` is loaded in their session, not the plugin's.
 - **Therefore, rules that must apply at runtime must be inlined** into the SKILL.md (and into every agent `.md` that writes files), shipped with the plugin itself.
 - **Cross-file duplication is acceptable here.** The "don't restate the same rule twice" principle governs intra-file redundancy. Cross-file appearance — contributor-facing `guidelines/writing.md` plus runtime SKILL.md / agent `.md` blocks — is necessary because the two contexts are loaded by different audiences in different environments.
+- **Translation on demand.** Users sometimes need a non-English copy of a generated document (e.g., to share with non-English-reading stakeholders). The existing repo convention already treats `*.ja.md` as a user-facing translation exception (`guidelines/writing.md`, `CLAUDE.md`). Extend this to runtime: when explicitly requested, skills emit an additional `<name>.<lang>.md` sibling, while guaranteeing the English original is always written first. This preserves the source-file invariant (English baseline is authoritative) while honoring user intent.
 
 ## Design
 
 ### Revised Language Policy block (all six SKILL.md)
 
-All six `SKILL.md` files carry the identical Language Policy block. Replace the current single-paragraph version with a two-paragraph version: the first paragraph keeps the existing chat-prose rule verbatim; the second paragraph adds the file-output fence and an inlined Token Economy checklist.
+All six `SKILL.md` files carry the identical Language Policy block. Replace the current single-paragraph version with a three-paragraph version: the first paragraph keeps the existing chat-prose rule verbatim; the second paragraph adds the file-output fence and an inlined Token Economy checklist; the third paragraph defines the opt-in translation-sibling mechanism.
 
 New block:
 
@@ -32,6 +33,8 @@ Files written to disk (specs, plans, contracts, source code) stay English regard
 - No filler transitions ("Next,", "In summary,", "It's important to note that").
 - No rationale unless it changes behavior in edge cases.
 - Don't restate the same rule twice within one file.
+
+When the user explicitly requests a translation of a generated document, write the English file first, then additionally write a sibling file with an ISO 639-1 language suffix (e.g., `<name>.ja.md` for Japanese, `<name>.fr.md` for French). The English original must always exist; translations are additive, never replacements. Applies to narrative documents (specs, plans, contracts, READMEs); source code stays English (comments included).
 ````
 
 Apply identical wording to `quick-brainstorm`, `deep-brainstorm`, `team-plan`, `sprint-master`, `solo-review`, `team-driven-development` — including the three that don't write committed files directly. Uniformity simplifies maintenance; skills may evolve or dispatch file-writing agents later.
@@ -76,6 +79,8 @@ Tighten the existing "Source vs. runtime" note under `## Language` so contributo
 - **No "read `CLAUDE.md` first" addition.** `CLAUDE.md` is only reliably loaded when this repo itself is the working directory; external users' sessions load their own `CLAUDE.md`. The observed failure happened with `CLAUDE.md` already loaded — the fix is local disambiguation, not a re-read directive.
 - **Cross-file duplication is intentional.** The Token Economy checklist appears in every SKILL.md Language Policy block, in every file-writing agent's Output Language section, and in `guidelines/writing.md`. The intra-file "don't restate the same rule twice" principle is preserved within each file; cross-file appearance is required because each file is loaded in a different context by a different audience.
 - **No change to runtime chat localization.** Announce, gates, status, and errors continue to render in the user's language per existing behavior.
+- **Translation is opt-in only.** Skills never auto-generate a `.<lang>.md` sibling based on conversation language alone; an explicit user request ("also output in Japanese", "日本語版もください", etc.) is required. The English baseline always ships alone when translation is not requested.
+- **Source code is not translated.** The `.<lang>.md` sibling mechanism applies to narrative documents. Source files a Worker writes stay English in full (identifiers, comments, strings) — translating code creates drift between the English and translated copies and has no clear consumer.
 
 ### Testing Strategy
 
@@ -85,13 +90,15 @@ Markdown prompt changes are not unit-testable — validate manually.
 - **Japanese plan generation:** continue into `team-plan`. Verify the plan file is English and tight.
 - **Japanese contract generation:** continue to `sprint-master` dispatch. Verify `sprints/<topic>/common.md` and `task-N.md` are English and tight.
 - **Japanese code generation:** in a Japanese-driven `team-driven-development` flow, verify source files a Worker writes (code, comments) are English.
+- **Translation on request:** from a Japanese conversation, invoke `quick-brainstorm` and include "日本語版も欲しい" in the request. Verify both files exist: `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md` (English) and `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.ja.md` (Japanese translation). Verify the English file is identical to the no-translation case.
+- **No spurious translation:** repeat the Japanese flow without asking for a translation. Verify only the `.md` file exists — no `.ja.md` sibling.
 - **English regression:** repeat the full flow in English. Verify announce, gates, and files all remain English — no behavioral change.
 
 ## File Changes
 
 | File | Status | Purpose |
 |---|---|---|
-| `skills/quick-brainstorm/SKILL.md` | Modify | Replace Language Policy block with two-paragraph version including file fence + TE checklist |
+| `skills/quick-brainstorm/SKILL.md` | Modify | Replace Language Policy block with three-paragraph version: chat rule + file fence/TE checklist + translation sibling |
 | `skills/deep-brainstorm/SKILL.md` | Modify | Same |
 | `skills/team-plan/SKILL.md` | Modify | Same |
 | `skills/sprint-master/SKILL.md` | Modify | Same |
