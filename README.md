@@ -163,10 +163,10 @@ This plugin is self-contained — all planning, implementation, and review skill
 ### With Quick Brainstorm (self-contained)
 
 ```
-/quick-brainstorm <task description> → team-driven-development
+/quick-brainstorm <task description> → team-plan → team-driven-development
 ```
 
-The `quick-brainstorm` skill generates a spec and plan with minimal dialogue. When the plan is ready, it offers to hand off directly to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-brainstorm automatically.
+The `quick-brainstorm` skill generates a spec with minimal dialogue. When the spec is approved, it hands off to `team-plan`, which produces the implementation plan and invokes `sprint-master` internally to generate Sprint Contract files. When the plan is ready, the flow offers to hand off to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-brainstorm automatically.
 
 ### Solo Review (standalone)
 

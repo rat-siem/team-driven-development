@@ -162,10 +162,10 @@ claude plugin update team-driven-development
 ### Quick Brainstorm と併用（自己完結）
 
 ```
-/quick-brainstorm <タスクの説明> → team-driven-development
+/quick-brainstorm <タスクの説明> → team-plan → team-driven-development
 ```
 
-`quick-brainstorm` スキルは最小限の対話で spec と plan を生成します。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-brainstorm を提案します。
+`quick-brainstorm` スキルは最小限の対話で spec を生成します。spec が承認されると `team-plan` に引き渡され、`team-plan` が plan を生成し、内部で `sprint-master` を呼び出して Sprint Contract ファイルを生成します。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-brainstorm を提案します。
 
 ### Solo Review（単体レビュー）
 
