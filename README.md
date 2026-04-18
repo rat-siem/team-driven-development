@@ -59,7 +59,7 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 - **Quick Brainstorm** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Hands off via `quick-brainstorm → team-plan → team-driven-development` (`team-plan` invokes `sprint-master` internally to generate Sprint Contract files). Use `/quick-brainstorm` or let team-driven-development suggest it when no plan exists.
 - **Deep Brainstorm** — Rigorous three-phase variant (Distill / Challenge / Harden) for vague or high-stakes requirements. Produces an extended spec with Decision Log, Unresolved Items, and Checklist Snapshot. Use `/deep-brainstorm` when decision reasoning must survive into the spec.
 - **Team Plan** — In-plugin implementation-plan writer. Consumes an approved spec at `docs/team-dd/specs/` and emits a token-optimized plan under `docs/team-dd/plans/`, then invokes `sprint-master` to generate Sprint Contract files. Invoke as `/team-plan <spec-path>`.
-- **Sprint Master** — Sole owner of Sprint Contract generation. Reads a spec + plan and writes `sprints/<topic>/common.md` and `task-N.md`. Invoked by `team-plan` after plan generation, directly via `/sprint-master <spec-path> <plan-path>`, or via the F4 Sprints Gate in team-driven-development.
+- **Sprint Master** — Sole owner of Sprint Contract generation. Reads a spec + plan and writes `docs/team-dd/sprints/<topic>/common.md` and `task-N.md`. Invoked by `team-plan` after plan generation, directly via `/sprint-master <spec-path> <plan-path>`, or via the F4 Sprints Gate in team-driven-development.
 - **Solo Review** — Standalone code review using the Reviewer agent. Auto-detects review target (staged, uncommitted, or branch diff), adapts criteria (Sprint Contract → plan-derived → generic), and produces structured verdicts. Use `/solo-review` for on-demand review without the full team workflow.
 - **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process. Use `--lite` or `--full` to skip triage and select mode directly.
 - **Dynamic team composition** — Roles assigned per task based on complexity and type
@@ -90,16 +90,16 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 4. User declines or Quick Score > 1 → proceed to Phase A-0.5 (Full Mode)
 
 ### Phase A-0.5: Sprints Gate (F4)
-1. Check that `sprints/<topic>/` exists for the plan
+1. Check that `docs/team-dd/sprints/<topic>/` exists for the plan
 2. If present → proceed to Phase A
-3. If missing → prompt: `sprints/<topic>/ not found. Run sprint-master now? [yes/no]`
+3. If missing → prompt: `docs/team-dd/sprints/<topic>/ not found. Run sprint-master now? [yes/no]`
 4. On `yes` → invoke `/team-driven-development:sprint-master <spec-path> <plan-path>`, then proceed to Phase A
 5. On `no` → abort with guidance to generate Sprint Contract files or use `--lite`
 6. Lite Mode skips this gate
 
 ### Phase A: Pre-delegate (Full Mode)
 1. Read and extract all tasks from the plan
-2. Read `sprints/<topic>/common.md` and each `task-N.md` (authoritative; do not regenerate)
+2. Read `docs/team-dd/sprints/<topic>/common.md` and each `task-N.md` (authoritative; do not regenerate)
 3. Analyze dependencies dynamically
 4. Determine team composition
 

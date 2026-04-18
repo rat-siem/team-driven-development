@@ -25,4 +25,4 @@ Executes plans created by the `team-plan` skill (or, for historical specs, the l
 - All files in this plugin repository must be written in English.
 - Exception: User-facing translation files (e.g., `docs/README.ja.md`).
 - Rationale: English text uses fewer tokens than equivalent Japanese text (roughly 2-3x difference due to tokenizer behavior), and a single language across all agent-facing instructions reduces ambiguity.
-- Files produced by skills at runtime — specs in `docs/team-dd/specs/`, plans in `docs/team-dd/plans/`, Sprint Contracts in `sprints/<topic>/`, and any source code a Worker writes — are source files too. They must be English.
+- Files produced by skills at runtime — specs in `docs/team-dd/specs/`, plans in `docs/team-dd/plans/`, Sprint Contracts in `docs/team-dd/sprints/<topic>/`, and any source code a Worker writes — are source files too. They must be English.

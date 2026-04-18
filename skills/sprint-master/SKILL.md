@@ -5,7 +5,7 @@ description: Human entry point for Sprint Contract generation. Dispatches the sp
 
 # Sprint Master
 
-Human slash-command wrapper around the `sprint-master` subagent. Dispatches the agent to generate `sprints/<topic>/common.md` and `task-N.md`, then offers the natural next step (execute with `team-driven-development`). The agent is the sole owner of schema and generation logic; this skill owns only dispatch and handoff.
+Human slash-command wrapper around the `sprint-master` subagent. Dispatches the agent to generate `docs/team-dd/sprints/<topic>/common.md` and `task-N.md`, then offers the natural next step (execute with `team-driven-development`). The agent is the sole owner of schema and generation logic; this skill owns only dispatch and handoff.
 
 **Announce at start:** "I'm using sprint-master to generate Sprint Contract files."
 
