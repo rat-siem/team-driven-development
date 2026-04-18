@@ -35,8 +35,7 @@ When the user explicitly requests a translation of a generated document, write t
 4. **Self-review** — run mechanical checks; fix findings inline.
 5. **Write file** — save to target path, report path to caller.
 6. **Dispatch sprint-master** — call the `Agent` tool with `subagent_type: "team-driven-development:sprint-master"`, passing `<spec-path>` and `<plan-path>` in the prompt. The agent returns to team-plan on completion. On failure, surface the error plus the re-run command `/team-driven-development:sprint-master <spec-path> <plan-path>`.
-7. **User confirms plan** — wait for approval. Revise on request.
-8. **Propose execution** — offer `team-driven-development` handoff.
+7. **Plan Confirmation Gate** — revise on free-form feedback; execute on confirmation; stop on decline.
 
 ## Process Flow
 
@@ -50,8 +49,9 @@ digraph team_plan {
     "Fix inline" [shape=box];
     "Write file" [shape=box];
     "Dispatch sprint-master" [shape=box];
-    "User approves plan?" [shape=diamond];
-    "Propose execution" [shape=doublecircle];
+    "Plan Confirmation Gate" [shape=diamond];
+    "Invoke team-driven-development" [shape=doublecircle];
+    "Stop" [shape=doublecircle];
 
     "Read spec" -> "Derive target path";
     "Derive target path" -> "Generate plan";
@@ -61,9 +61,10 @@ digraph team_plan {
     "Fix inline" -> "Self-review";
     "Issues found?" -> "Write file" [label="no"];
     "Write file" -> "Dispatch sprint-master";
-    "Dispatch sprint-master" -> "User approves plan?";
-    "User approves plan?" -> "Generate plan" [label="revise"];
-    "User approves plan?" -> "Propose execution" [label="yes"];
+    "Dispatch sprint-master" -> "Plan Confirmation Gate";
+    "Plan Confirmation Gate" -> "Generate plan" [label="revise"];
+    "Plan Confirmation Gate" -> "Invoke team-driven-development" [label="confirm"];
+    "Plan Confirmation Gate" -> "Stop" [label="decline"];
 }
 ```
 
@@ -165,10 +166,18 @@ Fix findings inline. Do not dispatch a subagent.
 - **Secrets detected:** redact in the plan and emit a warning line in the plan header. Do not abort. Do not modify the spec.
 - **sprint-master failure:** surface the error and the re-run command `/team-driven-development:sprint-master <spec-path> <plan-path>`. The plan file stays in place; the user can retry sprint-master manually.
 
-## User Plan Gate
+## Plan Confirmation Gate
 
-Ask `Plan saved to <path>. Any changes before we proceed?`. Revise on request.
+After `sprint-master` returns, ask once:
 
-## Execution Handoff
+```
+Plan saved to <path>. Ready to execute with team-driven-development? Reply to confirm, or describe any revisions to edit the plan first.
+```
 
-After approval, ask `Execute with team-driven-development? [yes/no]`. On yes, invoke `team-driven-development`. Do NOT invoke any superpowers skill.
+Interpret the response:
+
+- **Plain affirmative** (`yes`, `go`, `execute`, `proceed`, `ok`, `lgtm`, or equivalent in the user's language) → invoke `team-driven-development`. Do NOT invoke any superpowers skill.
+- **Plain negative** (`no`, `stop`, `cancel`, `not now`) → stop. Echo `Plan left at <path>. Run /team-driven-development:team-driven-development <plan-path> to execute later.` The plan file stays on disk.
+- **Free-form feedback / change requests / questions about the plan** → treat as revision intent. Revise the plan inline, re-run Self-Review, then re-emit the same prompt.
+
+Interpretation is a judgment call, not a keyword match. On genuinely ambiguous one-word replies, ask `Confirming execution, or did you want to revise the plan?` before acting.
