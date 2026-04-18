@@ -40,16 +40,16 @@ Out-of-scope (keep literal in every language):
 
 ### Policy Wording (canonical block)
 
-A short "Language Policy" block, identical across skills, is inserted into each SKILL.md. Wording:
+A short "Language Policy" block, identical across skills, is inserted into each SKILL.md. Wording is tightened per `guidelines/writing.md` Token Economy:
 
 ````markdown
 ## Language Policy
 
-Render fixed user-facing text in the user's conversation language: announce lines, gate prompts (spec / plan / execution / cleanup), surfaced concerns, status and progress reports, and user-facing error or usage messages. If the user explicitly requests another language for the session, use that instead. Treat the English phrasings in this file as semantic templates — translate faithfully, preserve placeholder variables (`<path>`, `<N>`, ...), and keep Markdown structure.
+Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
 
-Keep literal regardless of language: shell and slash commands, file paths, machine-parsable identifiers (`PASS`, `APPROVE`, `DONE`, `BLOCKED`, `CHANGES_REQUESTED`, severity / disposition labels, `MET` / `NOT_MET`), status-line markers (📌 🔍 ❓ ⚠), Markdown headings used as section anchors (e.g., `## Completion Report`), and column headers of report tables.
+Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
 
-Detection: default to the dominant language of the user's recent natural-language messages. If the user's input is pure code, paths, or commands (no natural language), keep the previous turn's language; use English on the very first turn if no prior signal exists. Override persists until the user changes it again.
+Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
 ````
 
 ### Placement in each SKILL.md

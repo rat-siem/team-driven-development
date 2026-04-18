@@ -41,11 +41,11 @@ The canonical Language Policy block (identical in all six files):
 ````markdown
 ## Language Policy
 
-Render fixed user-facing text in the user's conversation language: announce lines, gate prompts (spec / plan / execution / cleanup), surfaced concerns, status and progress reports, and user-facing error or usage messages. If the user explicitly requests another language for the session, use that instead. Treat the English phrasings in this file as semantic templates — translate faithfully, preserve placeholder variables (`<path>`, `<N>`, ...), and keep Markdown structure.
+Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
 
-Keep literal regardless of language: shell and slash commands, file paths, machine-parsable identifiers (`PASS`, `APPROVE`, `DONE`, `BLOCKED`, `CHANGES_REQUESTED`, severity / disposition labels, `MET` / `NOT_MET`), status-line markers (📌 🔍 ❓ ⚠), Markdown headings used as section anchors (e.g., `## Completion Report`), and column headers of report tables.
+Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
 
-Detection: default to the dominant language of the user's recent natural-language messages. If the user's input is pure code, paths, or commands (no natural language), keep the previous turn's language; use English on the very first turn if no prior signal exists. Override persists until the user changes it again.
+Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
 ````
 
 - [ ] Step 1: Confirm pre-edit state — none of the six files currently contain a `## Language Policy` heading.
@@ -76,11 +76,11 @@ Detection: default to the dominant language of the user's recent natural-languag
 
   ## Language Policy
 
-  Render fixed user-facing text in the user's conversation language: announce lines, gate prompts (spec / plan / execution / cleanup), surfaced concerns, status and progress reports, and user-facing error or usage messages. If the user explicitly requests another language for the session, use that instead. Treat the English phrasings in this file as semantic templates — translate faithfully, preserve placeholder variables (`<path>`, `<N>`, ...), and keep Markdown structure.
+  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
 
-  Keep literal regardless of language: shell and slash commands, file paths, machine-parsable identifiers (`PASS`, `APPROVE`, `DONE`, `BLOCKED`, `CHANGES_REQUESTED`, severity / disposition labels, `MET` / `NOT_MET`), status-line markers (📌 🔍 ❓ ⚠), Markdown headings used as section anchors (e.g., `## Completion Report`), and column headers of report tables.
+  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
 
-  Detection: default to the dominant language of the user's recent natural-language messages. If the user's input is pure code, paths, or commands (no natural language), keep the previous turn's language; use English on the very first turn if no prior signal exists. Override persists until the user changes it again.
+  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
 
   ## Checklist
   ````
@@ -104,11 +104,11 @@ Detection: default to the dominant language of the user's recent natural-languag
 
   ## Language Policy
 
-  Render fixed user-facing text in the user's conversation language: announce lines, gate prompts (spec / plan / execution / cleanup), surfaced concerns, status and progress reports, and user-facing error or usage messages. If the user explicitly requests another language for the session, use that instead. Treat the English phrasings in this file as semantic templates — translate faithfully, preserve placeholder variables (`<path>`, `<N>`, ...), and keep Markdown structure.
+  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
 
-  Keep literal regardless of language: shell and slash commands, file paths, machine-parsable identifiers (`PASS`, `APPROVE`, `DONE`, `BLOCKED`, `CHANGES_REQUESTED`, severity / disposition labels, `MET` / `NOT_MET`), status-line markers (📌 🔍 ❓ ⚠), Markdown headings used as section anchors (e.g., `## Completion Report`), and column headers of report tables.
+  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
 
-  Detection: default to the dominant language of the user's recent natural-language messages. If the user's input is pure code, paths, or commands (no natural language), keep the previous turn's language; use English on the very first turn if no prior signal exists. Override persists until the user changes it again.
+  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
 
   ## Checklist
   ````
@@ -132,11 +132,11 @@ Detection: default to the dominant language of the user's recent natural-languag
 
   ## Language Policy
 
-  Render fixed user-facing text in the user's conversation language: announce lines, gate prompts (spec / plan / execution / cleanup), surfaced concerns, status and progress reports, and user-facing error or usage messages. If the user explicitly requests another language for the session, use that instead. Treat the English phrasings in this file as semantic templates — translate faithfully, preserve placeholder variables (`<path>`, `<N>`, ...), and keep Markdown structure.
+  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
 
-  Keep literal regardless of language: shell and slash commands, file paths, machine-parsable identifiers (`PASS`, `APPROVE`, `DONE`, `BLOCKED`, `CHANGES_REQUESTED`, severity / disposition labels, `MET` / `NOT_MET`), status-line markers (📌 🔍 ❓ ⚠), Markdown headings used as section anchors (e.g., `## Completion Report`), and column headers of report tables.
+  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
 
-  Detection: default to the dominant language of the user's recent natural-language messages. If the user's input is pure code, paths, or commands (no natural language), keep the previous turn's language; use English on the very first turn if no prior signal exists. Override persists until the user changes it again.
+  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
 
   ## Checklist
   ````
@@ -158,11 +158,11 @@ Detection: default to the dominant language of the user's recent natural-languag
 
   ## Language Policy
 
-  Render fixed user-facing text in the user's conversation language: announce lines, gate prompts (spec / plan / execution / cleanup), surfaced concerns, status and progress reports, and user-facing error or usage messages. If the user explicitly requests another language for the session, use that instead. Treat the English phrasings in this file as semantic templates — translate faithfully, preserve placeholder variables (`<path>`, `<N>`, ...), and keep Markdown structure.
+  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
 
-  Keep literal regardless of language: shell and slash commands, file paths, machine-parsable identifiers (`PASS`, `APPROVE`, `DONE`, `BLOCKED`, `CHANGES_REQUESTED`, severity / disposition labels, `MET` / `NOT_MET`), status-line markers (📌 🔍 ❓ ⚠), Markdown headings used as section anchors (e.g., `## Completion Report`), and column headers of report tables.
+  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
 
-  Detection: default to the dominant language of the user's recent natural-language messages. If the user's input is pure code, paths, or commands (no natural language), keep the previous turn's language; use English on the very first turn if no prior signal exists. Override persists until the user changes it again.
+  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
 
   ## Checklist
   ````
@@ -184,11 +184,11 @@ Detection: default to the dominant language of the user's recent natural-languag
 
   ## Language Policy
 
-  Render fixed user-facing text in the user's conversation language: announce lines, gate prompts (spec / plan / execution / cleanup), surfaced concerns, status and progress reports, and user-facing error or usage messages. If the user explicitly requests another language for the session, use that instead. Treat the English phrasings in this file as semantic templates — translate faithfully, preserve placeholder variables (`<path>`, `<N>`, ...), and keep Markdown structure.
+  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
 
-  Keep literal regardless of language: shell and slash commands, file paths, machine-parsable identifiers (`PASS`, `APPROVE`, `DONE`, `BLOCKED`, `CHANGES_REQUESTED`, severity / disposition labels, `MET` / `NOT_MET`), status-line markers (📌 🔍 ❓ ⚠), Markdown headings used as section anchors (e.g., `## Completion Report`), and column headers of report tables.
+  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
 
-  Detection: default to the dominant language of the user's recent natural-language messages. If the user's input is pure code, paths, or commands (no natural language), keep the previous turn's language; use English on the very first turn if no prior signal exists. Override persists until the user changes it again.
+  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
 
   ## Arguments
   ````
@@ -212,11 +212,11 @@ Detection: default to the dominant language of the user's recent natural-languag
 
   ## Language Policy
 
-  Render fixed user-facing text in the user's conversation language: announce lines, gate prompts (spec / plan / execution / cleanup), surfaced concerns, status and progress reports, and user-facing error or usage messages. If the user explicitly requests another language for the session, use that instead. Treat the English phrasings in this file as semantic templates — translate faithfully, preserve placeholder variables (`<path>`, `<N>`, ...), and keep Markdown structure.
+  Translate user-facing prose (announce, gates, status, errors) into the user's conversation language; explicit user request overrides. The English in this file is a template.
 
-  Keep literal regardless of language: shell and slash commands, file paths, machine-parsable identifiers (`PASS`, `APPROVE`, `DONE`, `BLOCKED`, `CHANGES_REQUESTED`, severity / disposition labels, `MET` / `NOT_MET`), status-line markers (📌 🔍 ❓ ⚠), Markdown headings used as section anchors (e.g., `## Completion Report`), and column headers of report tables.
+  Keep literal: commands, paths, `<placeholders>`, identifiers (`PASS`/`APPROVE`/`DONE`/`DONE_WITH_CONCERNS`/`BLOCKED`/`NEEDS_CONTEXT`/`CHANGES_REQUESTED`/`REQUEST_CHANGES`/`MET`/`NOT_MET`, severity/disposition labels), status markers (📌🔍❓⚠), section-anchor headings, report-table column headers.
 
-  Detection: default to the dominant language of the user's recent natural-language messages. If the user's input is pure code, paths, or commands (no natural language), keep the previous turn's language; use English on the very first turn if no prior signal exists. Override persists until the user changes it again.
+  Detection: match recent natural-language input; pure code/commands → keep prior language; cold start → English.
 
   ## When to Use
   ````
@@ -227,9 +227,9 @@ Detection: default to the dominant language of the user's recent natural-languag
   set -e
   for f in skills/quick-brainstorm/SKILL.md skills/deep-brainstorm/SKILL.md skills/team-plan/SKILL.md skills/sprint-master/SKILL.md skills/solo-review/SKILL.md skills/team-driven-development/SKILL.md; do
     grep -qF "## Language Policy" "$f"
-    grep -qF "Render fixed user-facing text in the user's conversation language" "$f"
-    grep -qF "Keep literal regardless of language" "$f"
-    grep -qF "Detection: default to the dominant language" "$f"
+    grep -qF "Translate user-facing prose" "$f"
+    grep -qF "Keep literal: commands, paths" "$f"
+    grep -qF "Detection: match recent natural-language input" "$f"
   done
   for f in skills/quick-brainstorm/SKILL.md skills/deep-brainstorm/SKILL.md skills/team-plan/SKILL.md skills/sprint-master/SKILL.md; do
     awk '/^## Language Policy$/{lp=NR} /^## Checklist$/{ch=NR} END{exit !(lp && ch && lp<ch)}' "$f"

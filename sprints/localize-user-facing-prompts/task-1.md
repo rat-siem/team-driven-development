@@ -6,11 +6,11 @@
 
 ## Success Criteria
 - [ ] None of the six SKILL.md files contain a `## Language Policy` heading before the edit (confirmed by `grep -c '^## Language Policy$'` returning `0` for each file).
-- [ ] After edit, all six files contain the exact three-paragraph canonical block: heading `## Language Policy`, paragraph beginning "Render fixed user-facing text", paragraph beginning "Keep literal regardless of language", paragraph beginning "Detection: default to the dominant language".
+- [ ] After edit, all six files contain the exact three-paragraph canonical block: heading `## Language Policy`, paragraph beginning "Translate user-facing prose", paragraph beginning "Keep literal: commands, paths", paragraph beginning "Detection: match recent natural-language input".
 - [ ] In `skills/quick-brainstorm/SKILL.md`, `skills/deep-brainstorm/SKILL.md`, `skills/team-plan/SKILL.md`, and `skills/sprint-master/SKILL.md`: `## Language Policy` appears before `## Checklist`. Verified by: `awk '/^## Language Policy$/{lp=NR} /^## Checklist$/{ch=NR} END{exit !(lp && ch && lp<ch)}' <file>` exits 0.
 - [ ] In `skills/solo-review/SKILL.md`: `## Language Policy` appears before `## Arguments`. Verified by: `awk '/^## Language Policy$/{lp=NR} /^## Arguments$/{ar=NR} END{exit !(lp && ar && lp<ar)}' skills/solo-review/SKILL.md` exits 0.
 - [ ] In `skills/team-driven-development/SKILL.md`: `## Language Policy` appears before `## When to Use`. Verified by: `awk '/^## Language Policy$/{lp=NR} /^## When to Use$/{wtu=NR} END{exit !(lp && wtu && lp<wtu)}' skills/team-driven-development/SKILL.md` exits 0.
-- [ ] Tests pass: `for f in skills/quick-brainstorm/SKILL.md skills/deep-brainstorm/SKILL.md skills/team-plan/SKILL.md skills/sprint-master/SKILL.md skills/solo-review/SKILL.md skills/team-driven-development/SKILL.md; do grep -qF "## Language Policy" "$f" && grep -qF "Render fixed user-facing text in the user's conversation language" "$f" && grep -qF "Keep literal regardless of language" "$f" && grep -qF "Detection: default to the dominant language" "$f"; done && echo ALL_OK`
+- [ ] Tests pass: `for f in skills/quick-brainstorm/SKILL.md skills/deep-brainstorm/SKILL.md skills/team-plan/SKILL.md skills/sprint-master/SKILL.md skills/solo-review/SKILL.md skills/team-driven-development/SKILL.md; do grep -qF "## Language Policy" "$f" && grep -qF "Translate user-facing prose" "$f" && grep -qF "Keep literal: commands, paths" "$f" && grep -qF "Detection: match recent natural-language input" "$f"; done && echo ALL_OK`
 
 ## Non-Goals
 - This task does not validate runtime translation behavior — it only inserts the policy block text.
