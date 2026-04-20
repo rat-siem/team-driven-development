@@ -4,7 +4,7 @@
 
 専門的な役割を持つサブエージェントチームで実装プランを実行する Claude Code プラグインです。
 
-## 概要
+## アーキテクチャ
 
 単一のエージェントがすべてを行う代わりに、サブエージェントに専門的な役割を割り当てます。
 
@@ -53,25 +53,220 @@
 
 **目安：** 変更内容を一文で説明でき、対象ファイルが2つ以下なら、このプラグインはスキップしてよい。
 
-## 主な機能
+## スキル
 
-- **Quick Brainstorm** — 最小限の対話で本格的な spec + plan を生成する軽量スキル。コンテキストから推論できることは推論し、本当に曖昧な点のみ質問する。引き渡しは `quick-brainstorm → team-plan → team-driven-development`（`team-plan` が内部で `sprint-master` を呼び出して Sprint Contract ファイルを生成する）。`/quick-brainstorm` で呼び出すか、plan なしで team-driven-development を呼ぶと自動提案される。
-- **Deep Brainstorm** — 曖昧または影響の大きい要件向けの厳密な3フェーズ版（Distill / Challenge / Harden）。Decision Log、Unresolved Items、Checklist Snapshot を含む拡張 spec を生成。判断の根拠を spec に残したい場合に `/deep-brainstorm` を使用。
-- **Team Plan** — プラグイン内蔵の実装プラン生成器。`docs/team-dd/specs/` の承認済み spec を読み、`docs/team-dd/plans/` にトークン最適化された plan を出力したのち、`sprint-master` を呼び出して Sprint Contract ファイルを生成する。`/team-plan <spec-path>` で呼び出す。
-- **Sprint Master** — Sprint Contract 生成の唯一の所有者。spec と plan から `docs/team-dd/sprints/<topic>/common.md` と `task-N.md` を書き出す。`team-plan` が plan 生成後に呼び出すほか、`/sprint-master <spec-path> <plan-path>` で直接呼び出し、または team-driven-development の F4 Sprints Gate から呼び出される。
-- **Solo Review** — Reviewer エージェントによる単体コードレビュー。レビュー対象を自動検出（ステージ済み、未コミット、ブランチ diff）し、基準を適応（Sprint Contract → プラン派生 → 汎用）して構造化された判定を出力。`/solo-review` でフルチームワークフローなしにレビューを実行。
-- **適応的プロセス選択** — シンプルなプランには Lite Mode を提案、複雑なプランにはフルチームプロセスを使用。`--lite` / `--full` でトリアージをスキップしてモードを直接選択可能。
-- **動的チーム編成** — タスクの複雑度と種類に応じてロールを割り当て
-- **Sprint Contract** — 作業開始前に成功条件・非目標・レビュープロファイルを定義
-- **Effort Scoring** — タスク複雑度に基づくモデル自動選択（cheap/standard/capable）
-- **Worktree 隔離** — Worker は隔離された worktree で作業。承認後にのみ main に反映
-- **Worktree 対応実行** — git worktree の中から呼び出された場合を自動検知。Worker が現在のブランチに直接コミットするよう切り替え、sub-worktree の作成と cherry-pick をスキップ
-- **動的依存解析** — プラン内容（ファイルパス、import、論理的依存）から実行順序を決定
-- **並列実行** — 独立したタスクは複数の Worker で同時実行
-- **3段階レビュー** — `static`（Lead が diff 確認）、`runtime`（エージェントがテスト実行）、`browser`（エージェント + UI 検証）
-- **Review Ledger** — 全指摘を disposition（fixed/deferred/wont-fix）付きで追跡し、完了レポートに集約
-- **Sprint Contract QA** — Worker 派遣前に Contract を検証（検証可能な基準、非目標、プロファイル一致）
-- **Domain Guidelines** — プロジェクトにドメイン固有のガイドライン（フロントエンド、バックエンド、ライティング、テスト）がない場合を自動検知し、既存コードからドラフトを生成。承認されたガイドラインは Sprint Contract に組み込まれ、Worker は制約として従い、Reviewer は準拠をチェック。
+すべてのスキルがこのプラグインに同梱されており、`/<skill-name>` で呼び出せます。スキルは2つのグループに分かれています：**コアパイプライン**（通常の機能実装で順に呼び出す）と、**補助スキル**（コアパイプラインが内部で自動的に利用するスタンドアロンツール。特定の状況でのみ直接呼び出す）。
+
+#### コアパイプライン
+
+通常の実行フローは、spec スキル → `team-plan` → `team-driven-development` の順です。
+
+**Stage 1 — Spec 生成（いずれかを選ぶ）**
+
+### quick-brainstorm
+
+軽量な spec 生成スキル。リポジトリから推論できることは推論し、本当に曖昧な点のみ質問する。本格的な品質の spec を生成し、`team-plan` に引き渡す。スコープが明確なタスクの標準選択肢。`/quick-brainstorm <request>` で呼び出す。
+
+### deep-brainstorm
+
+3フェーズ（Distill / Challenge / Harden）の spec 生成スキル。Decision Log、Unresolved Items、Checklist Snapshot を含む拡張 spec を生成する。要件が曖昧、または判断の根拠を成果物として残したい場合に使用。`/deep-brainstorm <request>` で呼び出す。
+
+### superpowers:brainstorming *(外部・任意)*
+
+Superpowers プロジェクト自体のブレインストーミングスキル。spec のフォーマットが共通なので、このプラグインの `team-plan` とも互換。Superpowers エコシステムで作業している場合や、Superpowers の対話スタイルが好みの場合に使用。
+
+**Stage 2 — Plan 生成**
+
+### team-plan
+
+`docs/team-dd/specs/` の承認済み spec を読み、`docs/team-dd/plans/` にトークン最適化された plan を出力する。plan 承認後、自動的に `sprint-master` を呼び出して Sprint Contract ファイルを生成する。`/team-plan <spec-path>` で呼び出す。
+
+**Stage 3 — 実行**
+
+### team-driven-development
+
+オーケストレーションスキル。plan + Sprint Contracts に対して Lead / Worker / Reviewer / Architect の役割を動作させる。Reviewer のレビューも内部で実行されるため、このフロー内で `solo-review` を別途呼ぶ必要はない。Lite / Full モード対応（自動トリアージ、`--lite` / `--full` で強制可能）。Sprint Contract ファイルが無い場合は F4 ゲートから `sprint-master` を自動呼び出しする。`/team-driven-development <plan-path>` で呼び出す。
+
+#### 補助スキル
+
+これらはコアパイプラインが自動的に呼び出します。直接呼び出すのは以下の状況のみです。
+
+### sprint-master
+
+Sprint Contract 生成の唯一の所有者。spec + plan を読んで `docs/team-dd/sprints/<topic>/common.md` と `task-N.md` を書き出す。通常は `team-plan` が plan 承認後に呼び出すか、`team-driven-development` の F4 Sprints Gate が呼び出す。直接呼び出すのは以下のみ：
+
+- 自前で手書きした plan に対して Sprint Contract ファイルを生成したい（`team-plan` をスキップする場合）、または
+- Sprint Contract 生成後に plan を編集し、更新された plan に対して Contract を再生成したい場合。
+
+呼び出し: `/sprint-master <spec-path> <plan-path>`。
+
+### solo-review
+
+Reviewer エージェントを単体で実行する。レビュー対象（ステージ済み / 未コミット / ブランチ diff）を自動検出し、基準（Sprint Contract → plan 派生 → 汎用）を適応させる。コアパイプラインは各 Worker の成果物を既にレビューしているため、`solo-review` は標準フローの一部 **ではない**。直接呼び出すのは以下のみ：
+
+- 異なる観点で追加のレビューをしたい（例: `static` レビューの後に `--profile runtime` や `--profile browser` を強制）、
+- `team-driven-development` が承認済みのコードを、新しい観点（セキュリティ、パフォーマンス、リファクタ可否）で再レビューしたい、
+- 特定のコミット範囲やパスをレビューしたい（`/solo-review HEAD~3..HEAD`、`/solo-review src/api/`）、
+- チームパイプライン外で書かれたコードをレビューしたい（手書きの変更、外部コントリビューション）、または
+- 特定の Sprint Contract に対して明示的にレビューしたい（`--contract <path>`）。
+
+呼び出し: `/solo-review [range|path] [--profile ...] [--contract ...]`。
+
+#### 横断的な機能
+
+スキルではないが、パイプライン全体に登場するエンジンレベルの機能：
+
+- **Effort Scoring** — タスク複雑度に基づく Worker モデル自動選択（cheap / standard / capable）。
+- **Worktree 隔離** — Worker は隔離された git worktree で作業。承認後にのみ main に反映。
+- **Worktree 対応実行** — worktree 内からの呼び出しを自動検知し、sub-worktree と cherry-pick をスキップ。
+- **Review Ledger** — 全指摘を disposition（fixed / deferred / wont-fix）付きで修正ラウンドにわたって追跡し、完了レポートに集約。
+- **Domain Guidelines** — 欠けているドメインガイドラインを自動検知し、既存コードからドラフトを生成、承認後に Sprint Contract に組み込む。
+- **Sprint Contract QA** — Worker 派遣前に Contract を検証（検証可能な基準、非目標、プロファイル一致）。
+- **動的依存解析** — プラン内容から実行順序を実行時に決定。
+- **並列実行** — 独立タスクを複数の Worker で同時実行。
+- **3段階レビュー** — `static`（Lead が diff 確認）、`runtime`（エージェントがテスト実行）、`browser`（エージェント + UI 検証）。
+- **適応的プロセス選択** — シンプルなプランは Lite Mode、複雑なプランは Full Mode。`--lite` / `--full` でオーバーライド可能。
+
+## スキルの選び方
+
+**エントリーポイント判定**
+
+```
+手元にあるものは？
+├── ざっくりしたアイデア、スコープ明確       → /quick-brainstorm
+├── 曖昧 / 影響の大きい要件                  → /deep-brainstorm
+├── spec がすでにある（自作 or Superpowers） → /team-plan <spec>
+└── plan がすでにある（+ Sprint Contracts）  → /team-driven-development <plan>
+```
+
+**コアパイプライン — 通常の作業で使い分けるスキル**
+
+| 状況 | 使うスキル | 出力 | 次のステップ |
+|---|---|---|---|
+| 明確な依頼があり、素早く spec が欲しい | `quick-brainstorm` | spec | `team-plan` |
+| 曖昧 / 影響の大きい要件 | `deep-brainstorm` | Decision Log 付き拡張 spec | `team-plan` |
+| Superpowers エコシステムで作業中 | `superpowers:brainstorming` | Superpowers 形式の spec | `team-plan`（互換） |
+| 承認済み spec がある | `team-plan` | plan + Sprint Contracts（`sprint-master` 経由） | `team-driven-development` |
+| plan と Sprint Contracts がある | `team-driven-development` | 実装・レビュー済みコード | — |
+
+`quick-brainstorm` と `deep-brainstorm` で迷ったら、まず `quick-brainstorm` を選ぶ — エスカレーションが必要な曖昧さは `quick-brainstorm` 自体が露出させる。このプラグインのブレインストーミングスキルと `superpowers:brainstorming` で迷ったら、どちらでも動く — 慣れている方を選ぶ。
+
+**補助スキル — 以下の状況でのみ呼び出す**
+
+| 状況 | 使うスキル | なぜコアパイプラインではないか |
+|---|---|---|
+| 手書きの plan に Sprint Contracts が必要 | `sprint-master` | `team-plan` は自身が出力した plan に対して Contract を自動生成する。`team-plan` をスキップする場合のみ自分で `sprint-master` を呼ぶ。 |
+| Sprint Contract 生成後に plan を編集した | `sprint-master` | 更新された plan に対して Contract を再生成する。 |
+| `team-driven-development` 承認後に異なる観点で追加レビューしたい | `solo-review --profile <runtime\|browser>` | コアパイプラインは各タスクを Contract に照らしてレビューする。`solo-review` はその上に新たな観点で追加レビューを重ねる。 |
+| パイプライン外のコードをレビュー（手書き、外部 PR 等） | `solo-review` | コアパイプラインは Worker の成果物しかレビューしない。 |
+| 特定の範囲やパスだけをオンデマンドでレビュー | `solo-review HEAD~3..HEAD` / `solo-review src/api/` | 的を絞ったアドホックレビュー。 |
+| 特定の Sprint Contract を現在の変更に対して強制したい | `solo-review --contract <path>` | チームフロー外で、明示的な Contract を使って Reviewer を実行。 |
+
+## ワークフロー
+
+```
+  spec                  plan                        execution
+    │                     │                             │
+quick-brainstorm ───►  team-plan  ──────────────►  team-driven-development
+deep-brainstorm   ───►     │                             │
+superpowers:      ───►     │                             │
+  brainstorming            │                             │
+                           ▼                             │
+                     sprint-master                       │
+               （自動: team-plan と                      │
+                team-driven-development の               │
+                F4 Sprints Gate から呼ばれる）           │
+                                                         ▼
+                                                （Reviewer は
+                                                 team-driven-development
+                                                 の内部で動作）
+
+  パイプライン外、手動のみ:
+    sprint-master  — 手書きの plan、または Contract 生成後の plan 編集時
+    solo-review    — 追加観点のレビュー、パイプライン外コード、特定範囲/パス
+```
+
+spec は `docs/team-dd/specs/`、plan は `docs/team-dd/plans/`、Sprint Contract は `docs/team-dd/sprints/<topic>/` に保存される。各ステージには所有者が1つ存在する：spec は `quick-brainstorm` / `deep-brainstorm`、plan は `team-plan`、Sprint Contract は `sprint-master`、実行は `team-driven-development`。Reviewer は `team-driven-development` の **内部** で動作する — `solo-review` はパイプラインのステージではない。
+
+## 使い方
+
+すべてのスキルがこのプラグインに同梱されています。spec と plan のフォーマットは Superpowers と共通なので、`superpowers:brainstorming` や `writing-plans` のスキルとも相互運用できます。
+
+### コアパイプライン
+
+#### 標準フロー（quick）
+
+```
+/quick-brainstorm <request>     # spec を生成
+→ spec を承認
+→ team-plan 実行                 # plan を生成し、その後 sprint-master を自動呼び出し
+→ plan を承認
+→ team-driven-development 実行   # plan を実行。Reviewer は内部で動作
+```
+
+`quick-brainstorm` は承認済み spec を `team-plan` に引き渡します。`team-plan` は自動的に `sprint-master` を呼び出して Sprint Contract ファイルを生成します。`team-driven-development` は Worker を派遣し、各 Sprint Contract に対して Reviewer を実行します — 別途レビューステップは不要です。
+
+#### じっくりフロー（deep / Superpowers）
+
+```
+/deep-brainstorm <request> → team-plan → team-driven-development
+# または
+superpowers:brainstorming → team-plan → team-driven-development
+```
+
+曖昧または影響の大きい要件で、複数アプローチ比較や Decision Log 保存が必要なら `deep-brainstorm` を使用します。Superpowers の `brainstorming` で作成された spec は spec フォーマットが共通なので、そのまま `team-plan` に流れます。
+
+#### 自前の plan を持ち込む
+
+team-plan のタスク形式で plan を書いたら、`team-driven-development` を直接呼び出します：
+
+````markdown
+### Task 1: [名前]
+
+**Files:**
+- Create: `src/models/user.py`
+- Test: `tests/test_user.py`
+
+- [ ] **Step 1: 失敗するテストを書く**
+```python
+def test_user_creation():
+    user = User("Alice", "alice@example.com")
+    assert user.name == "Alice"
+```
+
+- [ ] **Step 2: 実装**
+...
+````
+
+Sprint Contract ファイルが無い場合、`team-driven-development` の F4 Sprints Gate が `sprint-master` を自動呼び出しします。先に自分で `sprint-master` を実行することも可能です。
+
+### 補助スキル（手動）
+
+#### Sprint Contract の再生成（`sprint-master`）
+
+`sprint-master` を直接呼び出すのは次の2状況のみ：(1) 自前で手書きした plan があり `team-plan` をスキップする、(2) Sprint Contract 生成後に plan を編集し、Contract を再生成したい。
+
+```
+/sprint-master <spec-path> <plan-path>
+```
+
+#### アドホックレビュー（`solo-review`）
+
+コアパイプラインは各 Worker の成果物を既にレビューしています。`solo-review` はそれ以外の状況（追加観点、パイプライン外コード、特定範囲/パス、プロファイル強制、明示的な Contract）で使います。
+
+```
+/solo-review                                      # 現在の変更を自動検出
+/solo-review HEAD~3..HEAD                         # 特定のコミット範囲
+/solo-review src/api/                             # 特定のパス
+/solo-review --profile runtime                    # runtime 検証を強制
+/solo-review --contract path/to/contract.md       # 特定の Sprint Contract を使用
+```
+
+`solo-review` はレビュー基準を自動検出します：
+
+- **Sprint Contract あり?** → 契約ベースレビュー（`team-driven-development` と同一）
+- **plan ファイルあり?** → 該当する plan タスクから基準を導出
+- **どちらも無い?** → 汎用コードレビュー（セキュリティ、正確性、テストカバレッジ）
 
 ## 動作フロー
 
@@ -114,111 +309,6 @@
 2. **完了レポート**を生成（実装サマリー・テスト結果・タスクごとのレビュー詳細・指摘と disposition・deferred 理由を含む）
 3. 全タスクの完了を検証
 
-## インストール
-
-### Claude Code 内から（推奨）
-
-Claude Code セッション内で `/plugin` スラッシュコマンドを使用します：
-
-```
-/plugin marketplace add https://github.com/rat-siem/team-driven-development
-/plugin install team-driven-development@team-driven-dev
-```
-
-### ターミナルから
-
-```bash
-# 1. マーケットプレイス登録
-claude plugin marketplace add https://github.com/rat-siem/team-driven-development
-
-# 2. インストール
-claude plugin install team-driven-development@team-driven-dev
-```
-
-### ローカルパスから（開発用）
-
-```bash
-claude plugin add /path/to/team-driven-development
-```
-
-## アップデート
-
-最新バージョンに更新するには：
-
-```
-/plugin update team-driven-development
-```
-
-またはターミナルから：
-
-```bash
-claude plugin update team-driven-development
-```
-
-## 使い方
-
-このプラグインは自己完結しています — 企画、実装、レビューのすべてのスキルが同梱されています。
-
-### Quick Brainstorm と併用（自己完結）
-
-```
-/quick-brainstorm <タスクの説明> → team-plan → team-driven-development
-```
-
-`quick-brainstorm` スキルは最小限の対話で spec を生成します。spec が承認されると `team-plan` に引き渡され、`team-plan` が plan を生成し、内部で `sprint-master` を呼び出して Sprint Contract ファイルを生成します。plan が完成すると team-driven-development への引き渡しを提案します。plan なしで team-driven-development を呼び出した場合は、自動的に quick-brainstorm を提案します。
-
-### Solo Review（単体レビュー）
-
-```
-/solo-review
-```
-
-フルチームワークフローなしで現在の変更をレビューします。レビュー対象と基準を自動検出します：
-
-- **Sprint Contract あり?** → 契約ベースレビュー（team-driven-development と同一）
-- **プランファイルあり?** → 該当するプランタスクから基準を導出
-- **どちらもなし?** → 汎用コードレビュー（セキュリティ、正確性、テストカバレッジ）
-
-オーバーライドオプション：
-```
-/solo-review HEAD~3..HEAD              # 特定のコミット範囲
-/solo-review src/api/                  # 特定のパス
-/solo-review --profile runtime         # ランタイム検証を強制
-/solo-review --contract path/to/contract.md  # 特定の Sprint Contract を使用
-```
-
-### Deep Brainstorm と併用（じっくり）
-
-```
-deep-brainstorm → team-plan → team-driven-development
-```
-
-曖昧または影響の大きい要件で、深い探索が必要なタスク — 複数アプローチの比較、セクションごとの設計承認、Decision Log の保存 — には `deep-brainstorm` を使用します。Distill / Challenge / Harden の3フェーズを駆動し、拡張 spec を生成します。承認済み spec は `team-plan` に流れ、実装プランが生成されたのち `sprint-master` が Sprint Contract ファイルを生成します。役割分担が効果的な複雑なプランは Team-Driven Development で実行します。
-
-### 単体で使用
-
-team-plan のタスク形式でプランを記述します：
-
-````markdown
-### Task 1: [名前]
-
-**Files:**
-- Create: `src/models/user.py`
-- Test: `tests/test_user.py`
-
-- [ ] **Step 1: 失敗するテストを書く**
-```python
-def test_user_creation():
-    user = User("Alice", "alice@example.com")
-    assert user.name == "Alice"
-```
-
-- [ ] **Step 2: 実装**
-...
-````
-
-スキルを呼び出してプランファイルを指定します。
-
 ## Sprint Contract の例
 
 ```markdown
@@ -259,6 +349,47 @@ quick-brainstorm の質問フェーズでユーザーが判断を委任した場
 これは明確かつ意図的な設計判断です。理由：ユーザーが判断を委任するとき、エージェントに最強の設計を期待しています。ギャップを残す狭いプランは、エッジケースをカバーするやや広いプランよりも劣ります。委任された判断とその理由は、透明性のため spec に記録されます。
 
 このルールは委任された判断にのみ適用されます。ユーザーが明確に指定した場合は、その指定が常に尊重され、YAGNI が通常通り適用されます。
+
+## インストール
+
+### Claude Code 内から（推奨）
+
+Claude Code セッション内で `/plugin` スラッシュコマンドを使用します：
+
+```
+/plugin marketplace add https://github.com/rat-siem/team-driven-development
+/plugin install team-driven-development@team-driven-dev
+```
+
+### ターミナルから
+
+```bash
+# 1. マーケットプレイス登録
+claude plugin marketplace add https://github.com/rat-siem/team-driven-development
+
+# 2. インストール
+claude plugin install team-driven-development@team-driven-dev
+```
+
+### ローカルパスから（開発用）
+
+```bash
+claude plugin add /path/to/team-driven-development
+```
+
+## アップデート
+
+最新バージョンに更新するには：
+
+```
+/plugin update team-driven-development
+```
+
+またはターミナルから：
+
+```bash
+claude plugin update team-driven-development
+```
 
 ## 必要条件
 
