@@ -4,7 +4,7 @@
 
 A Claude Code plugin that orchestrates implementation plans using a team of specialized subagents with clearly defined roles.
 
-## What It Does
+## Architecture
 
 Instead of a single agent doing everything, Team-Driven Development assigns specialized roles to subagents:
 
@@ -54,25 +54,219 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 
 **Rule of thumb:** If you can describe the entire change in one sentence and it touches ≤ 2 files, skip this plugin.
 
-## Key Features
+## Skills
 
-- **Quick Brainstorm** — Lightweight spec + plan generation with minimal dialogue. Infers what it can from context, asks only what's genuinely ambiguous, and outputs full-quality documents. Hands off via `quick-brainstorm → team-plan → team-driven-development` (`team-plan` invokes `sprint-master` internally to generate Sprint Contract files). Use `/quick-brainstorm` or let team-driven-development suggest it when no plan exists.
-- **Deep Brainstorm** — Rigorous three-phase variant (Distill / Challenge / Harden) for vague or high-stakes requirements. Produces an extended spec with Decision Log, Unresolved Items, and Checklist Snapshot. Use `/deep-brainstorm` when decision reasoning must survive into the spec.
-- **Team Plan** — In-plugin implementation-plan writer. Consumes an approved spec at `docs/team-dd/specs/` and emits a token-optimized plan under `docs/team-dd/plans/`, then invokes `sprint-master` to generate Sprint Contract files. Invoke as `/team-plan <spec-path>`.
-- **Sprint Master** — Sole owner of Sprint Contract generation. Reads a spec + plan and writes `docs/team-dd/sprints/<topic>/common.md` and `task-N.md`. Invoked by `team-plan` after plan generation, directly via `/sprint-master <spec-path> <plan-path>`, or via the F4 Sprints Gate in team-driven-development.
-- **Solo Review** — Standalone code review using the Reviewer agent. Auto-detects review target (staged, uncommitted, or branch diff), adapts criteria (Sprint Contract → plan-derived → generic), and produces structured verdicts. Use `/solo-review` for on-demand review without the full team workflow.
-- **Adaptive process selection** — Simple plans trigger a Lite Mode suggestion; complex plans use the full team process. Use `--lite` or `--full` to skip triage and select mode directly.
-- **Dynamic team composition** — Roles assigned per task based on complexity and type
-- **Sprint Contracts** — Success criteria, non-goals, and review profile defined before work begins
-- **Effort Scoring** — Automatic model selection (cheap/standard/capable) based on task complexity
-- **Worktree isolation** — Workers operate in isolated git worktrees; changes reach main only after approval
-- **Worktree-aware execution** — Detects when invoked from inside a git worktree and adapts automatically: Workers commit directly to the current branch, no sub-worktrees are created, cherry-pick is skipped
-- **Dynamic dependency analysis** — Execution order determined from plan content (file paths, imports, logical dependencies)
-- **Parallel execution** — Independent tasks run simultaneously with separate Workers
-- **Three-tier review** — `static` (Lead reads diff), `runtime` (agent runs tests), `browser` (agent + UI verification)
-- **Review Ledger** — Every finding tracked with disposition (fixed/deferred/wont-fix) across review rounds, surfaced in the completion report
-- **Sprint Contract QA** — Contracts validated before Worker dispatch (verifiable criteria, non-goals, profile match)
-- **Domain Guidelines** — Auto-detects when a project lacks domain-specific guidelines (frontend, backend, writing, testing), generates drafts from existing code, and integrates approved guidelines into Sprint Contracts. Workers follow them as constraints; Reviewers check compliance.
+Every skill ships with the plugin and is invokable as `/<skill-name>`. Skills are split into two groups: **Core pipeline** (invoke in sequence for a normal feature) and **Supporting skills** (standalone tools the core pipeline already uses internally; call them directly only in specific situations).
+
+#### Core pipeline
+
+A normal run uses one spec skill, then `team-plan`, then `team-driven-development`.
+
+**Stage 1 — Spec generation (pick one)**
+
+### quick-brainstorm
+
+Lightweight spec generator. Infers what it can from the repo and asks only genuinely ambiguous points. Produces a full-quality spec, then hands off to `team-plan`. Default choice for well-scoped work. Invoked as `/quick-brainstorm <request>`.
+
+### deep-brainstorm
+
+Three-phase spec generator (Distill / Challenge / Harden). Produces an extended spec with Decision Log, Unresolved Items, and Checklist Snapshot. Use when requirements are vague or the decision trail must survive into the artifact. Invoked as `/deep-brainstorm <request>`.
+
+### superpowers:brainstorming *(external, optional)*
+
+The Superpowers project's own brainstorming skill. Specs it produces are compatible with `team-plan` because the spec format is shared. Reach for it when you already work in the Superpowers ecosystem or prefer its dialogue style.
+
+**Stage 2 — Plan generation**
+
+### team-plan
+
+Consumes an approved spec from `docs/team-dd/specs/` and writes a token-optimized plan under `docs/team-dd/plans/`. After plan approval, automatically invokes `sprint-master` to generate Sprint Contract files. Invoked as `/team-plan <spec-path>`.
+
+**Stage 3 — Execution**
+
+### team-driven-development
+
+The orchestration skill. Runs Lead / Worker / Reviewer / Architect roles against the plan + Sprint Contracts, including the Reviewer pass — you do not need `solo-review` as part of this flow. Supports Lite and Full modes (auto-triaged, override with `--lite` / `--full`). If Sprint Contract files are missing it invokes `sprint-master` through the F4 gate automatically. Invoked as `/team-driven-development <plan-path>`.
+
+#### Supporting skills
+
+These are invoked automatically by the core pipeline. Call them directly only in the situations listed below.
+
+### sprint-master
+
+Sole owner of Sprint Contract generation. Reads a spec + plan and writes `docs/team-dd/sprints/<topic>/common.md` and `task-N.md`. Normally invoked by `team-plan` after plan approval, or by `team-driven-development`'s F4 Sprints Gate. Call it directly only when:
+
+- you are bringing your own hand-written plan (skipping `team-plan`) and need Sprint Contract files for it, or
+- you edited a plan after contracts were generated and want to regenerate contracts against the updated plan.
+
+Invocation: `/sprint-master <spec-path> <plan-path>`.
+
+### solo-review
+
+Runs the Reviewer agent on its own. Auto-detects review target (staged / uncommitted / branch diff) and adapts criteria (Sprint Contract → plan-derived → generic). The core pipeline already reviews every Worker's output, so `solo-review` is **not** part of the standard flow. Call it directly when:
+
+- you want an extra review pass from a different angle (e.g., force `--profile runtime` or `--profile browser` after a `static` review),
+- you re-review code that `team-driven-development` already approved, for a fresh concern (security, performance, refactor readiness),
+- you want to review a specific commit range or path (`/solo-review HEAD~3..HEAD`, `/solo-review src/api/`),
+- you are reviewing code written outside the team pipeline (hand-written changes, external contributions), or
+- you want to review against a specific Sprint Contract on demand (`--contract <path>`).
+
+Invocation: `/solo-review [range|path] [--profile ...] [--contract ...]`.
+
+#### Cross-cutting capabilities
+
+Engine-level features that aren't skills but show up across the pipeline:
+
+- **Effort Scoring** — Automatic Worker model selection (cheap / standard / capable) based on task complexity.
+- **Worktree isolation** — Workers run in isolated git worktrees; changes reach main only after review approval.
+- **Worktree-aware execution** — Detects when invoked from inside a worktree and adapts (no sub-worktrees, no cherry-pick).
+- **Review Ledger** — Every review finding tracked across rounds with disposition (fixed / deferred / wont-fix) and surfaced in the completion report.
+- **Domain Guidelines** — Auto-detects missing domain guidelines, drafts from existing code, and embeds approved guidelines into Sprint Contracts.
+- **Sprint Contract QA** — Contracts validated before Worker dispatch (verifiable criteria, non-goals, profile match).
+- **Dynamic dependency analysis** — Execution order derived from plan content at runtime.
+- **Parallel execution** — Independent tasks dispatched simultaneously across Workers.
+- **Three-tier review** — `static` (Lead reads diff), `runtime` (agent runs tests), `browser` (agent + UI verification).
+- **Adaptive process selection** — Lite Mode for simple plans, Full Mode for complex plans, overridable with `--lite` / `--full`.
+
+## Choosing a Skill
+
+**Entry-point decision**
+
+```
+What do you have?
+├── A rough idea, clear scope               → /quick-brainstorm
+├── A vague or high-stakes requirement      → /deep-brainstorm
+├── A spec already (yours or Superpowers')  → /team-plan <spec>
+└── A plan already (+ Sprint Contracts)     → /team-driven-development <plan>
+```
+
+**Core pipeline — the skills you pick between for normal work**
+
+| When you... | Use | Output | Next |
+|---|---|---|---|
+| Have a clear request, want a spec fast | `quick-brainstorm` | spec | `team-plan` |
+| Have a vague/high-stakes requirement | `deep-brainstorm` | extended spec with Decision Log | `team-plan` |
+| Already live in the Superpowers ecosystem | `superpowers:brainstorming` | Superpowers-format spec | `team-plan` (compatible) |
+| Have an approved spec | `team-plan` | plan + Sprint Contracts (via `sprint-master`) | `team-driven-development` |
+| Have a plan + Sprint Contracts | `team-driven-development` | implemented, reviewed code | — |
+
+If you are unsure between `quick-brainstorm` and `deep-brainstorm`, default to `quick-brainstorm` — it will surface ambiguities that warrant escalating. If you are unsure between this plugin's brainstorming skills and `superpowers:brainstorming`, either works; choose by familiarity.
+
+**Supporting skills — reach for them only in these situations**
+
+| Situation | Use | Why not the core pipeline? |
+|---|---|---|
+| You hand-wrote a plan and need Sprint Contracts | `sprint-master` | `team-plan` generates contracts automatically from its own plans; run `sprint-master` yourself only when skipping `team-plan`. |
+| You edited the plan after contracts were generated | `sprint-master` | Regenerate contracts against the updated plan. |
+| You want a review from a different angle after `team-driven-development` approved | `solo-review --profile <runtime\|browser>` | The core pipeline reviews each task against its contract; `solo-review` adds a fresh-angle pass on top. |
+| You are reviewing code not produced by the pipeline (hand-written, external PR) | `solo-review` | The core pipeline only reviews Worker output. |
+| You want to review a specific range or path on demand | `solo-review HEAD~3..HEAD` / `solo-review src/api/` | Targeted ad-hoc review. |
+| You want to force a specific Sprint Contract against current changes | `solo-review --contract <path>` | Run the Reviewer with an explicit contract outside the team flow. |
+
+## Workflow
+
+```
+  spec                  plan                        execution
+    │                     │                             │
+quick-brainstorm ───►  team-plan  ──────────────►  team-driven-development
+deep-brainstorm   ───►     │                             │
+superpowers:      ───►     │                             │
+  brainstorming            │                             │
+                           ▼                             │
+                     sprint-master                       │
+                 (auto; invoked by team-plan             │
+                  and team-driven-development's          │
+                  F4 Sprints Gate)                       │
+                                                         ▼
+                                              (Reviewer runs inside
+                                               team-driven-development)
+
+  Off-pipeline, manual only:
+    sprint-master  — when you hand-wrote a plan or edited it after contracts were made
+    solo-review    — extra review pass, code outside the pipeline, or targeted range/path
+```
+
+Specs live in `docs/team-dd/specs/`, plans in `docs/team-dd/plans/`, and Sprint Contracts in `docs/team-dd/sprints/<topic>/`. Each stage has a single owner: `quick-brainstorm` / `deep-brainstorm` own specs, `team-plan` owns plans, `sprint-master` owns Sprint Contracts, and `team-driven-development` owns execution. Reviewer runs inside `team-driven-development` — `solo-review` is not a pipeline stage.
+
+## Usage
+
+Every skill ships with the plugin. Skills interoperate with Superpowers' `brainstorming` and `writing-plans` because the spec/plan formats are shared.
+
+### Core pipeline
+
+#### Standard flow (quick)
+
+```
+/quick-brainstorm <request>   # produces spec
+→ approve spec
+→ team-plan runs              # produces plan; then auto-invokes sprint-master
+→ approve plan
+→ team-driven-development runs  # executes plan, Reviewer runs inside
+```
+
+`quick-brainstorm` hands the approved spec to `team-plan`. `team-plan` invokes `sprint-master` automatically to generate Sprint Contract files. `team-driven-development` dispatches Workers and runs the Reviewer against each Sprint Contract — no separate review step is needed.
+
+#### Thorough flow (deep or Superpowers)
+
+```
+/deep-brainstorm <request> → team-plan → team-driven-development
+# or
+superpowers:brainstorming → team-plan → team-driven-development
+```
+
+Use `deep-brainstorm` for vague or high-stakes requirements that benefit from multiple approach comparisons and a preserved Decision Log. Specs produced by Superpowers' `brainstorming` feed directly into this plugin's `team-plan` because the spec format is shared.
+
+#### Bring your own plan
+
+If you already have a plan in the team-plan task format, invoke `team-driven-development` directly:
+
+````markdown
+### Task 1: [Name]
+
+**Files:**
+- Create: `src/models/user.py`
+- Test: `tests/test_user.py`
+
+- [ ] **Step 1: Write failing test**
+```python
+def test_user_creation():
+    user = User("Alice", "alice@example.com")
+    assert user.name == "Alice"
+```
+
+- [ ] **Step 2: Implement**
+...
+````
+
+If Sprint Contract files are missing, `team-driven-development`'s F4 Sprints Gate will invoke `sprint-master` for you; alternatively, run `sprint-master` yourself first.
+
+### Supporting skills (manual)
+
+#### Regenerating Sprint Contracts (`sprint-master`)
+
+Call `sprint-master` directly in two situations: (1) you hand-wrote a plan and skipped `team-plan`; (2) you edited a plan after contracts were generated and want them regenerated.
+
+```
+/sprint-master <spec-path> <plan-path>
+```
+
+#### Ad-hoc review (`solo-review`)
+
+The core pipeline reviews every Worker's output, so `solo-review` is for situations the pipeline doesn't cover: extra review angle, code outside the pipeline, targeted range or path, forced profile, or explicit contract.
+
+```
+/solo-review                                      # current changes, auto-detect
+/solo-review HEAD~3..HEAD                         # specific commit range
+/solo-review src/api/                             # specific path
+/solo-review --profile runtime                    # force runtime validation
+/solo-review --contract path/to/contract.md       # use a specific Sprint Contract
+```
+
+`solo-review` auto-detects review criteria:
+
+- **Has Sprint Contract?** → Contract-based review (identical to `team-driven-development`)
+- **Has plan file?** → Derives criteria from matching plan tasks
+- **Neither?** → Generic code review (security, correctness, test coverage)
 
 ## How It Works
 
@@ -115,111 +309,6 @@ This plugin adds orchestration overhead. That overhead pays for itself on comple
 2. Generate **completion report** with implementation summary (what was built per task), test results, per-task review detail (findings, dispositions), and deferred items with reasons
 3. Verify all tasks complete
 
-## Installation
-
-### From Claude Code (recommended)
-
-Use the `/plugin` slash command inside a Claude Code session:
-
-```
-/plugin marketplace add https://github.com/rat-siem/team-driven-development
-/plugin install team-driven-development@team-driven-dev
-```
-
-### From Terminal
-
-```bash
-# 1. Register marketplace
-claude plugin marketplace add https://github.com/rat-siem/team-driven-development
-
-# 2. Install
-claude plugin install team-driven-development@team-driven-dev
-```
-
-### From Local Path (for development)
-
-```bash
-claude plugin add /path/to/team-driven-development
-```
-
-## Updating
-
-To update to the latest version:
-
-```
-/plugin update team-driven-development
-```
-
-Or from the terminal:
-
-```bash
-claude plugin update team-driven-development
-```
-
-## Usage
-
-This plugin is self-contained — all planning, implementation, and review skills ship with it.
-
-### With Quick Brainstorm (self-contained)
-
-```
-/quick-brainstorm <task description> → team-plan → team-driven-development
-```
-
-The `quick-brainstorm` skill generates a spec with minimal dialogue. When the spec is approved, it hands off to `team-plan`, which produces the implementation plan and invokes `sprint-master` internally to generate Sprint Contract files. When the plan is ready, the flow offers to hand off to team-driven-development for execution. If team-driven-development is invoked without a plan, it will suggest quick-brainstorm automatically.
-
-### Solo Review (standalone)
-
-```
-/solo-review
-```
-
-Review your current changes without running the full team workflow. The skill auto-detects what to review and which criteria to use:
-
-- **Has Sprint Contract?** → Contract-based review (identical to team-driven-development)
-- **Has plan file?** → Derives criteria from matching plan tasks
-- **Neither?** → Generic code review (security, correctness, test coverage)
-
-Override options:
-```
-/solo-review HEAD~3..HEAD              # specific commit range
-/solo-review src/api/                  # specific path
-/solo-review --profile runtime         # force runtime validation
-/solo-review --contract path/to/contract.md  # use specific Sprint Contract
-```
-
-### With Deep Brainstorm (thorough)
-
-```
-deep-brainstorm → team-plan → team-driven-development
-```
-
-For vague or high-stakes requirements that need deep exploration — multiple approach comparisons, section-by-section design approval, Decision Log preservation — use `deep-brainstorm`. It drives Distill / Challenge / Harden phases and produces an extended spec. The approved spec flows into `team-plan`, which generates the implementation plan and invokes `sprint-master` to produce Sprint Contract files. Execute the plan with Team-Driven Development for complex work that benefits from role specialization.
-
-### Standalone
-
-Write a plan in the team-plan task format:
-
-````markdown
-### Task 1: [Name]
-
-**Files:**
-- Create: `src/models/user.py`
-- Test: `tests/test_user.py`
-
-- [ ] **Step 1: Write failing test**
-```python
-def test_user_creation():
-    user = User("Alice", "alice@example.com")
-    assert user.name == "Alice"
-```
-
-- [ ] **Step 2: Implement**
-...
-````
-
-Then invoke the skill and point it at your plan.
-
 ## Sprint Contract Example
 
 ```markdown
@@ -260,6 +349,47 @@ When a user defers a decision during quick-brainstorm's clarification phase ("ei
 This is an explicit, intentional design choice. The rationale: when a user delegates a decision, they are trusting the agent to produce the strongest possible design. A narrow plan that leaves gaps is worse than a slightly broader plan that covers edge cases. The deferred decision and reasoning are recorded in the spec for transparency.
 
 This rule applies only to deferred decisions. When the user specifies a preference, that preference is always respected — YAGNI applies normally.
+
+## Installation
+
+### From Claude Code (recommended)
+
+Use the `/plugin` slash command inside a Claude Code session:
+
+```
+/plugin marketplace add https://github.com/rat-siem/team-driven-development
+/plugin install team-driven-development@team-driven-dev
+```
+
+### From Terminal
+
+```bash
+# 1. Register marketplace
+claude plugin marketplace add https://github.com/rat-siem/team-driven-development
+
+# 2. Install
+claude plugin install team-driven-development@team-driven-dev
+```
+
+### From Local Path (for development)
+
+```bash
+claude plugin add /path/to/team-driven-development
+```
+
+## Updating
+
+To update to the latest version:
+
+```
+/plugin update team-driven-development
+```
+
+Or from the terminal:
+
+```bash
+claude plugin update team-driven-development
+```
 
 ## Requirements
 
