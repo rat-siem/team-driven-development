@@ -34,15 +34,16 @@ When the user explicitly requests a translation of a generated document, write t
 Create a task for each item and complete in order:
 
 1. **Explore context** — related files, docs, recent commits.
-2. **Phase 1 Distill** — restate, surface ambiguity, resolve Purpose / Success criteria / Scope / Users.
-3. **Phase 2 Challenge** — counter-proposals, stress-test, resolve Alternatives / Assumptions / Constraints.
-4. **Phase 3 Harden** — Risks / Security / NFR + Surfaced Concerns.
-5. **Present design** — section-by-section user approval.
-6. **Write extended spec** — `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`, commit.
-7. **Light self-review** — placeholders + obvious contradictions (~30s).
-8. **Subagent review** — dispatch with `prompts/reviewer.md`; revise on `CHANGES_REQUESTED`, max 2 rounds.
-9. **User approves spec**.
-10. **Invoke `team-plan`**.
+2. **Resolve base branch** — see Base Branch Resolution; record value in spec header.
+3. **Phase 1 Distill** — restate, surface ambiguity, resolve Purpose / Success criteria / Scope / Users.
+4. **Phase 2 Challenge** — counter-proposals, stress-test, resolve Alternatives / Assumptions / Constraints.
+5. **Phase 3 Harden** — Risks / Security / NFR + Surfaced Concerns.
+6. **Present design** — section-by-section user approval.
+7. **Write extended spec** — `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`, commit.
+8. **Light self-review** — placeholders + obvious contradictions (~30s).
+9. **Subagent review** — dispatch with `prompts/reviewer.md`; revise on `CHANGES_REQUESTED`, max 2 rounds.
+10. **User approves spec**.
+11. **Invoke `team-plan`**.
 
 ## Process Flow
 
@@ -89,6 +90,17 @@ digraph deep_brainstorm {
     "User approves spec?" -> "Invoke team-plan" [label="approved"];
 }
 ```
+
+## Base Branch Resolution
+
+Resolve the base branch for Worker worktrees before Phase 1. Recording always runs; the team-driven-development Worktree Check short-circuits use of the value at execution time.
+
+1. **`--branch=<name>` argument** → run `git rev-parse --verify <name>`. Verified: use. Not found: prompt `Branch '<name>' not found. [1] use current '<current>' / [2] specify another / [3] cancel`. Cancel terminates the skill.
+2. **Otherwise** → prompt `Base Worker worktrees on current branch '<current>'? Reply yes, or specify another branch.` Plain affirmative reuses current; any other reply is treated as a branch name and verified (loop on missing).
+
+Reject branch names containing shell metacharacters (`Invalid branch name: '<value>'`).
+
+Record the resolved value in the extended spec header as `**Base branch:** <name>`.
 
 ## Three Phases
 
@@ -204,6 +216,8 @@ Adds three sections over brainstorming spec: **Decision Log**, **Unresolved Item
 
 ````markdown
 # [Feature Name] Design
+
+**Base branch:** <resolved branch>
 
 ## Overview
 [What + why — 2-3 sentences]
