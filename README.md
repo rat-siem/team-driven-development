@@ -36,7 +36,7 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 - **The person who writes the code doesn't review it.** Worker and Reviewer are separate agents with separate context. This eliminates self-review bias — the most common failure mode when a single agent implements and validates its own work.
 - **Success criteria are locked before work begins.** Sprint Contracts define what "done" means before a single line is code is written. No scope drift, no moving goalposts, no "looks good to me" reviews.
 - **Every review finding is tracked to resolution.** The Review Ledger records each finding across fix rounds with a disposition (fixed / deferred / wont-fix). Nothing gets silently dropped.
-- **Main branch stays safe.** Workers operate in isolated git worktrees. Changes only reach main after review approval and cherry-pick — a failed task never pollutes the working tree.
+- **Base branch stays safe.** Workers operate in isolated git worktrees branched from the resolved base branch (defaults to the current branch; override with `--branch=<name>`). Changes only reach the base branch after review approval and cherry-pick — a failed task never pollutes the working tree.
 - **Token cost scales with task complexity.** Effort Scoring assigns cheaper models (Haiku) to simple tasks and reserves expensive models (Opus) for complex ones. You don't pay Opus prices to rename a variable.
 - **Independent tasks run in parallel.** Dynamic dependency analysis identifies tasks that can run simultaneously, dispatching multiple Workers in separate worktrees.
 
@@ -118,8 +118,9 @@ Invocation: `/solo-review [range|path] [--profile ...] [--contract ...]`.
 Engine-level features that aren't skills but show up across the pipeline:
 
 - **Effort Scoring** — Automatic Worker model selection (cheap / standard / capable) based on task complexity.
-- **Worktree isolation** — Workers run in isolated git worktrees; changes reach main only after review approval.
-- **Worktree-aware execution** — Detects when invoked from inside a worktree and adapts (no sub-worktrees, no cherry-pick).
+- **Worktree isolation** — Workers run in isolated git worktrees branched from the resolved base branch; changes reach the base branch only after review approval.
+- **Base branch selection** — Defaults to the current branch; override with `--branch=<name>`. The resolved value is recorded in spec / plan / Sprint Contract headers so downstream skills (`quick-brainstorm`, `deep-brainstorm`, `team-plan`, `team-driven-development`) skip re-prompting.
+- **Worktree-aware execution** — Detects when invoked from inside a worktree and adapts (no sub-worktrees, no cherry-pick; `--branch` is ignored with a warning).
 - **Review Ledger** — Every review finding tracked across rounds with disposition (fixed / deferred / wont-fix) and surfaced in the completion report.
 - **Domain Guidelines** — Auto-detects missing domain guidelines, drafts from existing code, and embeds approved guidelines into Sprint Contracts.
 - **Sprint Contract QA** — Contracts validated before Worker dispatch (verifiable criteria, non-goals, profile match).
@@ -278,10 +279,11 @@ The core pipeline reviews every Worker's output, so `solo-review` is for situati
 
 ### Phase A-0: Triage
 0. **Worktree Check** — Detect if running inside a git worktree. If so, activate Worktree Mode: Workers commit directly to the current branch (no sub-worktrees, no cherry-pick). Requires a clean working tree.
-1. Read the plan and calculate a Quick Score (task count, file count, domain spread, design keywords)
-2. Quick Score ≤ 1 → propose **Lite Mode** to the user
-3. User accepts → Lead implements directly with a single Reviewer pass at the end
-4. User declines or Quick Score > 1 → proceed to Phase A-0.5 (Full Mode)
+1. **Base Branch Resolution** — `--branch=<name>` flag wins (verify exists, prompt on missing); else use the plan's `**Base branch:**` field if present; else prompt with the current branch as default. Skipped in Worktree Mode.
+2. Read the plan and calculate a Quick Score (task count, file count, domain spread, design keywords)
+3. Quick Score ≤ 1 → propose **Lite Mode** to the user
+4. User accepts → Lead implements directly with a single Reviewer pass at the end
+5. User declines or Quick Score > 1 → proceed to Phase A-0.5 (Full Mode)
 
 ### Phase A-0.5: Sprints Gate (F4)
 1. Check that `docs/team-dd/sprints/<topic>/` exists for the plan
@@ -302,7 +304,7 @@ The core pipeline reviews every Worker's output, so `solo-review` is for situati
 2. Dispatch Worker in isolated worktree
 3. Review against Sprint Contract with **evidence table** (every criterion gets MET/NOT_MET + evidence)
 4. Fix loop (max 3 rounds) if REQUEST_CHANGES — all findings tracked in **Review Ledger** with dispositions
-5. Cherry-pick to main on APPROVE (conflict resolution flow if needed)
+5. Cherry-pick to the resolved base branch on APPROVE (conflict resolution flow if needed)
 
 ### Phase C: Post-delegate
 1. Collect all results

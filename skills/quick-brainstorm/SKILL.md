@@ -30,18 +30,20 @@ When the user explicitly requests a translation of a generated document, write t
 ## Checklist
 
 1. **Read context** — check relevant files, docs, recent commits related to the request
-2. **Clarify unknowns** — ask only genuinely ambiguous points, one at a time (0 questions is valid)
-3. **Generate spec** — save to `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`, commit
-4. **Spec self-review** — placeholder/consistency/scope/ambiguity/Sprint-Contract check, fix inline
-5. **User confirms spec** — wait for approval, revise if requested
-6. **Hand off to `team-plan`** — invoke `/team-driven-development:team-plan <spec-path>`; team-plan owns plan generation, self-review, and the user plan gate
-7. **Return** — `team-plan` owns the combined plan/execute gate; quick-brainstorm completes on team-plan return
+2. **Resolve base branch** — see Base Branch Resolution; record value in spec header
+3. **Clarify unknowns** — ask only genuinely ambiguous points, one at a time (0 questions is valid)
+4. **Generate spec** — save to `docs/team-dd/specs/YYYY-MM-DD-<topic>-design.md`, commit
+5. **Spec self-review** — placeholder/consistency/scope/ambiguity/Sprint-Contract check, fix inline
+6. **User confirms spec** — wait for approval, revise if requested
+7. **Hand off to `team-plan`** — invoke `/team-driven-development:team-plan <spec-path>`; team-plan owns plan generation, self-review, and the user plan gate
+8. **Return** — `team-plan` owns the combined plan/execute gate; quick-brainstorm completes on team-plan return
 
 ## Process Flow
 
 ```dot
 digraph quick_brainstorm {
     "Read context" [shape=box];
+    "Resolve base branch" [shape=box];
     "Unclear requirements?" [shape=diamond];
     "Ask question (one at a time)" [shape=box];
     "More unclear points?" [shape=diamond];
@@ -50,7 +52,8 @@ digraph quick_brainstorm {
     "User approves spec?" [shape=diamond];
     "Hand off to team-plan" [shape=doublecircle];
 
-    "Read context" -> "Unclear requirements?";
+    "Read context" -> "Resolve base branch";
+    "Resolve base branch" -> "Unclear requirements?";
     "Unclear requirements?" -> "Ask question (one at a time)" [label="yes"];
     "Unclear requirements?" -> "Generate spec" [label="no"];
     "Ask question (one at a time)" -> "More unclear points?";
@@ -62,6 +65,17 @@ digraph quick_brainstorm {
     "User approves spec?" -> "Hand off to team-plan" [label="yes"];
 }
 ```
+
+## Base Branch Resolution
+
+Resolve the base branch for Worker worktrees before generating the spec. Recording always runs; the team-driven-development Worktree Check short-circuits use of the value at execution time.
+
+1. **`--branch=<name>` argument** → run `git rev-parse --verify <name>`. Verified: use. Not found: prompt `Branch '<name>' not found. [1] use current '<current>' / [2] specify another / [3] cancel`. Cancel terminates the skill.
+2. **Otherwise** → prompt `Base Worker worktrees on current branch '<current>'? Reply yes, or specify another branch.` Plain affirmative reuses current; any other reply is treated as a branch name and verified (loop on missing).
+
+Reject branch names containing shell metacharacters (`Invalid branch name: '<value>'`).
+
+Record the resolved value in the spec header as `**Base branch:** <name>`.
 
 ## Clarification Logic
 
@@ -96,6 +110,8 @@ The spec covers the same ground as a brainstorming-produced spec — full qualit
 
 ```markdown
 # [Feature Name] Design
+
+**Base branch:** <resolved branch>
 
 ## Overview
 [What this feature does and why — 2-3 sentences]

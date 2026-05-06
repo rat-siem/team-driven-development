@@ -48,6 +48,9 @@ Do NOT write outside `docs/team-dd/sprints/<topic>/`. If spec or plan is missing
 ## Plan
 <relative path to plan, from repo root>
 
+## Base branch
+<branch name copied from the plan's `**Base branch:**` field>
+
 ## Shared Criteria
 - <cross-task rule>
 
@@ -56,6 +59,7 @@ Do NOT write outside `docs/team-dd/sprints/<topic>/`. If spec or plan is missing
 ````
 
 - `Spec` / `Plan`: machine-derived from input arguments.
+- `Base branch`: copied verbatim from the plan's `**Base branch:**` header field. Omit the section if the plan has no field (back-compat with pre-feature plans).
 - `Shared Criteria`: rules applying to every task. Derived from the spec's Design and Testing Strategy sections.
 - `Domain Guidelines`: `guidelines/<domain>.md` files detected from plan file-path patterns using the team-driven-development Phase 0 detection table.
 

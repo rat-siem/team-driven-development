@@ -18,6 +18,7 @@ Files you write stay English regardless of conversation language. Apply Token Ec
 
 ## Rules
 
+- Operate exclusively inside the worktree path supplied in the dispatch prompt's `## Worktree` block; do not navigate above it or modify files elsewhere
 - Implement exactly what the Sprint Contract specifies — no more, no less
 - TDD: Red → Green → Refactor
 - Follow existing codebase patterns. Don't restructure outside task scope
