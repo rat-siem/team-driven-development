@@ -50,6 +50,7 @@ Create a task for each item and complete in order:
 ```dot
 digraph deep_brainstorm {
     "Explore context" [shape=box];
+    "Resolve base branch" [shape=box];
     "Phase 1: Distill" [shape=box];
     "Distill gate: items 1-4 confirmed?" [shape=diamond];
     "Phase 2: Challenge" [shape=box];
@@ -66,7 +67,8 @@ digraph deep_brainstorm {
     "User approves spec?" [shape=diamond];
     "Invoke team-plan" [shape=doublecircle];
 
-    "Explore context" -> "Phase 1: Distill";
+    "Explore context" -> "Resolve base branch";
+    "Resolve base branch" -> "Phase 1: Distill";
     "Phase 1: Distill" -> "Distill gate: items 1-4 confirmed?";
     "Distill gate: items 1-4 confirmed?" -> "Phase 1: Distill" [label="no"];
     "Distill gate: items 1-4 confirmed?" -> "Phase 2: Challenge" [label="yes"];

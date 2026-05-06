@@ -43,6 +43,7 @@ When the user explicitly requests a translation of a generated document, write t
 ```dot
 digraph team_plan {
     "Read spec" [shape=box];
+    "Resolve base branch" [shape=box];
     "Derive target path" [shape=box];
     "Generate plan" [shape=box];
     "Self-review" [shape=box];
@@ -54,7 +55,8 @@ digraph team_plan {
     "Invoke team-driven-development" [shape=doublecircle];
     "Stop" [shape=doublecircle];
 
-    "Read spec" -> "Derive target path";
+    "Read spec" -> "Resolve base branch";
+    "Resolve base branch" -> "Derive target path";
     "Derive target path" -> "Generate plan";
     "Generate plan" -> "Self-review";
     "Self-review" -> "Issues found?";

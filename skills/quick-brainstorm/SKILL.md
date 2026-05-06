@@ -43,6 +43,7 @@ When the user explicitly requests a translation of a generated document, write t
 ```dot
 digraph quick_brainstorm {
     "Read context" [shape=box];
+    "Resolve base branch" [shape=box];
     "Unclear requirements?" [shape=diamond];
     "Ask question (one at a time)" [shape=box];
     "More unclear points?" [shape=diamond];
@@ -51,7 +52,8 @@ digraph quick_brainstorm {
     "User approves spec?" [shape=diamond];
     "Hand off to team-plan" [shape=doublecircle];
 
-    "Read context" -> "Unclear requirements?";
+    "Read context" -> "Resolve base branch";
+    "Resolve base branch" -> "Unclear requirements?";
     "Unclear requirements?" -> "Ask question (one at a time)" [label="yes"];
     "Unclear requirements?" -> "Generate spec" [label="no"];
     "Ask question (one at a time)" -> "More unclear points?";
