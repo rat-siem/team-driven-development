@@ -107,8 +107,19 @@ Run: `git rev-parse --git-dir`
 If output contains `/worktrees/` → **Worktree Mode**:
 - Refuse if `git diff-index --quiet HEAD --` fails → `"Commit or stash changes first."`
 - Announce: `"Running in worktree context."`
-- B-2: omit `isolation: "worktree"`.
+- If `--branch=<name>` was passed: emit `--branch ignored: running in worktree context, Workers commit to current branch '<current>'`.
+- B-2: omit Lead-managed worktree creation; Workers run in current directory.
 - Skip B-6.
+
+### Base Branch Resolution
+
+Skip when Worktree Mode is active. Otherwise resolve before Quick Score:
+
+1. **`--branch=<name>` argument** → run `git rev-parse --verify <name>`. Verified: use. Not found: prompt `Branch '<name>' not found. [1] use current '<current>' / [2] specify another / [3] cancel`. Cancel terminates execution.
+2. **Plan contains `**Base branch:**` field** → use without prompting.
+3. **Otherwise** → prompt `Base Worker worktrees on current branch '<current>'? Reply yes, or specify another branch.` Plain affirmative reuses current; any other reply is treated as a branch name and verified (loop on missing).
+
+Reject branch names containing shell metacharacters (`Invalid branch name: '<value>'`). Hold the resolved value in Lead context for Phase B; do not re-prompt later.
 
 ### Quick Score → Mode Selection
 
@@ -210,7 +221,15 @@ Effort 3+ AND design decisions → dispatch Architect with task text, codebase c
 
 ### B-2: Dispatch Worker
 
-Send: full task text, `docs/team-dd/sprints/<topic>/common.md` + `docs/team-dd/sprints/<topic>/task-N.md` content, Domain Guidelines content (from common.md's Domain Guidelines section), design brief (if any), codebase context. Model per the task-N.md Effort Score. Worktree isolation.
+**Lead creates the worktree before dispatch:**
+
+```bash
+git worktree add .claude/worktrees/agent-<task-id> -b worktree-agent-<task-id> <base-branch>
+```
+
+`<task-id>` is unique per dispatch (e.g., task index plus a 4-char random suffix to allow parallelism). `<base-branch>` is the value resolved in Phase A-0. On failure (path or branch collision), retry once with a fresh `<task-id>`, then escalate.
+
+Send to the Worker: full task text, `docs/team-dd/sprints/<topic>/common.md` + `docs/team-dd/sprints/<topic>/task-N.md` content, Domain Guidelines content (from common.md's Domain Guidelines section), design brief (if any), codebase context, and the worktree path/branch via the `## Worktree` block in `prompts/worker-prompt.md`. Model per the task-N.md Effort Score. **Do not pass `isolation: "worktree"`** — the Lead-managed worktree replaces it.
 
 **Codebase Context rules:**
 - Full content: only files Worker must modify
@@ -247,14 +266,15 @@ Severity → verdict mapping is defined in `agents/reviewer.md`. The Lead applie
 ### B-5: Fix Loop (max 3 rounds)
 REQUEST_CHANGES → issues to Worker → fix in same worktree → re-review → APPROVE or 3 rounds → escalate.
 
-### B-6: Cherry-pick to Main
+### B-6: Cherry-pick to Base Branch
 
 ```bash
+git checkout <base-branch>
 git cherry-pick --no-commit <hash>
 git commit -m "<task description>"
 ```
 
-**Conflicts:** Lead resolves. Non-trivial → re-dispatch Reviewer (outside 3-round limit). Cannot resolve → escalate. Record in Ledger.
+`<base-branch>` is the value resolved in Phase A-0. **Conflicts:** Lead resolves. Non-trivial → re-dispatch Reviewer (outside 3-round limit). Cannot resolve → escalate. Record in Ledger.
 
 **Progress:** "Task N/Total complete — [task name]"
 
@@ -285,7 +305,7 @@ Gather commit hashes, file changes, test results, implementation summaries, defe
 ```
 
 ### C-3: Verify
-All plan tasks complete. All tests pass on main. No uncommitted changes.
+All plan tasks complete. All tests pass on the base branch. No uncommitted changes.
 
 ### C-4: Worktree Cleanup
 
