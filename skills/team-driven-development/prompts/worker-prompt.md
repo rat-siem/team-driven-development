@@ -4,10 +4,16 @@
 Agent tool:
   subagent_type: "team-driven-development:worker"
   model: [haiku|sonnet|opus per effort score]
-  isolation: "worktree"
   mode: "bypassPermissions"
   description: "Implement Task N: [task name]"
   prompt: |
+    ## Worktree
+    Path: <absolute path to .claude/worktrees/agent-<task-id>>
+    Branch: worktree-agent-<task-id>
+    Base: <base-branch>
+
+    All commands run inside this path. Do not modify files outside it.
+
     ## Task
     [FULL TEXT from plan — paste it, never reference a file]
 
