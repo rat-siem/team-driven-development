@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Adapted from obra/superpowers (MIT License, Copyright (c) 2025 Jesse Vincent).
+#
+# Resolve and create the git-ignored run workspace for one plan:
+#   <repo-root>/.team-dd/runs/<plan-slug>/
+# Holds ledger.md, task briefs, Worker reports, review files, review packages.
+# A plan-path marker records the owning plan; a slug owned by another plan is
+# disambiguated with the plan's parent-directory name, then a counter.
+# Prints the workspace's absolute path.
+#
+# Usage: run-workspace PLAN_FILE
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+  echo "usage: run-workspace PLAN_FILE" >&2
+  exit 2
+fi
+
+plan=$1
+[ -f "$plan" ] || { echo "no such plan file: $plan" >&2; exit 2; }
+
+slug=$(basename "$plan" .md)
+[ -n "$slug" ] && [ "$slug" != "." ] && [ "$slug" != ".." ] \
+  || { echo "cannot derive a workspace name from: $plan" >&2; exit 2; }
+
+root=$(CDPATH='' cd -- "$(git rev-parse --show-toplevel)" && pwd -P)
+base="$root/.team-dd/runs"
+
+plan_dir=$(CDPATH='' cd -- "$(dirname "$plan")" && pwd -P)
+plan_abs="$plan_dir/$(basename "$plan")"
+case "$plan_abs" in
+  "$root"/*) plan_id=${plan_abs#"$root"/} ;;
+  *)         plan_id=$plan_abs ;;
+esac
+
+# True when workspace $1 is (or becomes) this plan's.
+owns() {
+  if [ -e "$1/plan-path" ]; then
+    [ "$(cat "$1/plan-path")" = "$plan_id" ]
+  else
+    mkdir -p "$1"
+    printf '%s\n' "$plan_id" > "$1/plan-path"
+  fi
+}
+
+dir="$base/$slug"
+if ! owns "$dir"; then
+  parent=$(basename "$plan_dir")
+  dir="$base/$slug-$parent"
+  if ! owns "$dir"; then
+    n=2
+    while ! owns "$base/$slug-$parent-$n"; do n=$((n + 1)); done
+    dir="$base/$slug-$parent-$n"
+  fi
+fi
+
+# Create-only: never overwrite a repo's own .gitignore here.
+[ -e "$root/.team-dd/.gitignore" ] || printf '*\n' > "$root/.team-dd/.gitignore"
+CDPATH='' cd -- "$dir" && pwd -P
