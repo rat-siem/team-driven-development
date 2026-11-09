@@ -34,7 +34,7 @@
 
 - **コードを書く人とレビューする人が別。** Worker と Reviewer は別エージェント・別コンテキストで動く。単一エージェントが自分の成果物を検証するセルフレビューのバイアスを構造的に排除する。
 - **作業開始前に成功条件が確定する。** Sprint Contract が「完了」の定義をコードを書く前にロックする。スコープのブレ、基準の後出し、「まあ良さそう」レビューが発生しない。
-- **レビュー指摘がすべて追跡される。** Review Ledger が全指摘を修正ラウンドにわたって disposition（fixed / deferred / wont-fix）付きで記録する。指摘が暗黙的にドロップされることがない。
+- **レビュー指摘がすべて追跡される。** Run Ledger が全指摘を修正ラウンドにわたって disposition（fixed / deferred / wont-fix）付きで記録する。指摘が暗黙的にドロップされることがない。
 - **ベースブランチが常に安全。** Worker は解決されたベースブランチ（デフォルトは現在のブランチ。`--branch=<name>` で上書き可）から派生した隔離 git worktree で作業する。変更はレビュー承認 + cherry-pick を経てのみベースブランチに到達する — 失敗したタスクが作業ツリーを汚染しない。
 - **トークンコストがタスク複雑度に連動する。** Effort Scoring がシンプルなタスクには安価なモデル（Haiku）、複雑なタスクには高性能モデル（Opus）を自動選択する。変数リネームに Opus の料金を払わなくて済む。
 - **独立タスクが並列実行される。** 動的依存解析が同時実行可能なタスクを特定し、複数の Worker を別々の worktree で並列ディスパッチする。
@@ -120,7 +120,9 @@ Reviewer エージェントを単体で実行する。レビュー対象（ス�
 - **Worktree 隔離** — Worker は解決されたベースブランチから派生した隔離 git worktree で作業。承認後にのみベースブランチに反映。
 - **ベースブランチ選択** — デフォルトは現在のブランチ。`--branch=<name>` で上書き可能。解決された値は spec / plan / Sprint Contract のヘッダに記録され、下流のスキル（`quick-brainstorm`、`deep-brainstorm`、`team-plan`、`team-driven-development`）は再質問しない。
 - **Worktree 対応実行** — worktree 内からの呼び出しを自動検知し、sub-worktree と cherry-pick をスキップ（`--branch` は警告付きで無視）。
-- **Review Ledger** — 全指摘を disposition（fixed / deferred / wont-fix）付きで修正ラウンドにわたって追跡し、完了レポートに集約。
+- **Run Ledger と再開** — 進捗と全レビュー指摘（disposition: fixed / deferred / wont-fix）を `.team-dd/runs/<plan>/ledger.md` に追記。コンテキスト圧縮後も残り、同じプランを再実行すると完了済みタスクをスキップする。
+- **ファイル経由の受け渡し** — タスク brief・Worker レポート・レビューパッケージはプロンプトに貼らず run workspace のファイルで受け渡し、Lead のコンテキストを小さく保つ。
+- **ブランチ全体の最終レビュー** — 全タスク統合後に opus の Reviewer が統合差分をレビューし、タスク間の欠陥検出と deferred な minor の仕分けを行う。必要なら修正は1回だけ。
 - **Domain Guidelines** — 欠けているドメインガイドラインを自動検知し、既存コードからドラフトを生成、承認後に Sprint Contract に組み込む。
 - **Sprint Contract QA** — Worker 派遣前に Contract を検証（検証可能な基準、非目標、プロファイル一致）。
 - **動的依存解析** — プラン内容から実行順序を実行時に決定。
@@ -303,13 +305,14 @@ Sprint Contract ファイルが無い場合、`team-driven-development` の F4 S
 1. Architect を派遣して Design Brief を取得（必要な場合のみ）
 2. Worker を隔離 worktree に派遣
 3. Sprint Contract に基づいて**エビデンステーブル**でレビュー（各基準に MET/NOT_MET + エビデンス）
-4. REQUEST_CHANGES の場合は修正ループ（最大3回）— 全指摘を **Review Ledger** で disposition 付き追跡
+4. REQUEST_CHANGES の場合は修正ループ（最大5回）— 1〜3回目は同じ Worker を再開、4〜5回目はモデルを1段上げた新しい Worker に交代。各ラウンドは修正差分のみをスコープ限定で再レビュー。全指摘を **Run Ledger** で disposition 付き追跡
 5. APPROVE で解決済みベースブランチに cherry-pick（コンフリクト時は解決フローあり）
 
 ### Phase C: 完了処理
 1. 全結果を収集
-2. **完了レポート**を生成（実装サマリー・テスト結果・タスクごとのレビュー詳細・指摘と disposition・deferred 理由を含む）
-3. 全タスクの完了を検証
+2. 統合結果に対するブランチ全体の最終レビュー（opus）。修正は最大1回
+3. **完了レポート**を生成（実装サマリー・テスト結果・タスクごとのレビュー詳細・指摘と disposition・deferred 理由を含む）
+4. 全タスクの完了を検証
 
 ## Sprint Contract の例
 
@@ -402,3 +405,5 @@ claude plugin update team-driven-development
 ## ライセンス
 
 MIT
+
+run workspace 用ヘルパー、スコープ限定の再レビュー、ファイル経由の受け渡し、修正ループのエスカレーションは [obra/superpowers](https://github.com/obra/superpowers)（MIT License, Copyright (c) 2025 Jesse Vincent）を元にしている。
