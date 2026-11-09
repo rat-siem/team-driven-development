@@ -43,33 +43,44 @@ You have an implementation plan to execute. No plan → suggest the `quick-brain
 | **Worker** | Every task | Implementation + TDD + self-review in worktree | Per effort score |
 | **Reviewer** | Every task | Validate against Sprint Contract | sonnet |
 | **Architect** | Design tasks | Design decisions, API shape, data model | opus |
+| **Final Reviewer** | After all tasks | Whole-branch review (C-1.5) | opus |
 
 **Summon Architect when:** Task requires choosing between approaches, defines interfaces others depend on, involves data model/API design, or has effort 3+ touching core/shared code. Architect produces a **design brief** (approach, interfaces, constraints).
 
-### Review Ledger
+### Run Ledger
 
-Lead maintains per task. Managed in Lead's context (not filesystem). Feeds into Completion Report.
+File-backed at `<ws>/ledger.md` (A-0). Source of truth for resume and the Completion Report. Append-only; never rewrite earlier lines. After compaction trust `ledger.md` + `git log` over memory.
+
+First line: `# team-dd ledger — plan: <plan path>`. Then `## Progress` with one event per line:
+
+```
+Run: base-branch <name>, run-base <sha7>
+Task <N>: dispatched (worktree <path>, branch <branch>, base <sha7>, agent <id>, model <m>)
+Task <N>: restarted (worktree missing)
+Task <N>: review round <R> <APPROVE|REQUEST_CHANGES> (<Nc>c <NM>M <Nm>m <Nr>r)
+Task <N>: fix round <R>/5 (<X> addressed, <Y> open; commits <a7>..<b7>)
+Task <N>: minor (deferred): <one-liner>
+Task <N>: note: <text>
+Task <N>: escalated: <reason>
+Task <N>: complete (cherry-pick <sha7>)
+Final: review <APPROVE|REQUEST_CHANGES> (<counts>)
+Final: fix (commits <a7>..<b7>), re-review <all addressed|<Y> open>
+Final: complete
+```
+
+Per-task findings: append a `## Task N Review Ledger` section to the same file:
 
 ```markdown
-## Review Ledger: Task N - [Name]
-### Round 1
-#### Worker Self-Review
-| # | Severity | File:Line | Finding | Source |
-|---|----------|-----------|---------|--------|
-| W-1 | minor | src/foo.ts:42 | Unused import | self-review |
-#### Reviewer Findings
-| # | Severity | File:Line | Finding | Source |
-|---|----------|-----------|---------|--------|
-| R-1 | major | src/bar.ts:15 | Missing null check | reviewer |
-#### Disposition
-| # | Source | Severity | Disposition | Detail |
-|---|--------|----------|-------------|--------|
-| W-1 | self-review | minor | fixed | Same commit |
-| R-1 | reviewer | major | fixed | Commit abc123 |
+## Task N Review Ledger
+### Round 0
+| # | Source | Severity | File:Line | Finding | Disposition | Detail |
+|---|--------|----------|-----------|---------|-------------|--------|
+| W-1 | self-review | minor | src/foo.ts:42 | Unused import | fixed | Same commit |
+| R-1 | reviewer | major | src/bar.ts:15 | Missing null check | fixed | Commit abc123 |
 ### Final Status: APPROVE (Round N)
 ```
 
-**Dispositions:** `fixed`, `deferred` (reason required), `wont-fix` (reason required). Critical/major MUST be `fixed`.
+**Dispositions:** `fixed`, `deferred` (reason required), `wont-fix` (reason required). Critical/major MUST be `fixed` before the `complete` line.
 
 ## Phase 0: Guideline Check
 
@@ -189,8 +200,39 @@ Skip Phases A–C. Lead implements directly.
 
 ## Phase A: Pre-delegate
 
+### A-0: Run Workspace and Resume
+
+`<skill-dir>` = this skill's base directory. Run helpers as `bash <skill-dir>/scripts/<name>` (never rely on exec bits).
+
+1. `bash <skill-dir>/scripts/run-workspace <plan-path>` → prints `<ws>`. Failure or unwritable → abort before Phase B: `Cannot create run workspace: <path>`.
+2. `<ws>/ledger.md` missing → create with the identity line and `## Progress`. Present → resume (a ledger owned by another plan never reaches here; `run-workspace` disambiguates via its `plan-path` marker):
+
+| Ledger state for task N | Action |
+|---|---|
+| `complete` line | Skip. Never re-dispatch or re-cherry-pick |
+| `escalated` line, no `complete` | Ask the user how to proceed before touching it |
+| `dispatched`, no `complete`, worktree exists | Fresh Worker (worker-prompt.md Fresh Worker template) in that worktree with brief, report, last open findings; continue the fix-round count from the ledger |
+| `dispatched`, worktree missing | Append `restarted (worktree missing)`; dispatch from scratch in a new worktree |
+| No lines | Normal dispatch |
+
+`Run:` line present → reuse its base branch and run-base. `Final:` lines present → after tasks, resume C-1.5 at the first missing step.
+
+**Workspace files:**
+
+| File | Writer | Purpose |
+|---|---|---|
+| `ledger.md` | Lead | Run Ledger |
+| `task-N-brief.md` | `task-brief` | Task text from plan |
+| `task-N-design.md` | Lead | Architect design brief |
+| `task-N-report.md` | Worker | Full report; fix rounds appended |
+| `task-N-review-rR.md` | Reviewer / Lead | Review (R=0) or re-review (R≥1) |
+| `review-<base7>..<head7>.diff` | `review-package` | Review package |
+| `final-review.md`, `final-review-r1.md` | Reviewer | Final review, final fix re-review |
+
+Workers and Reviewers write their output file in `<ws>` by absolute path — their only write outside the worktree.
+
 ### A-1: Read and Extract
-Read plan once. Extract ALL tasks with full text, file paths, test commands, criteria. Never make subagents read the plan.
+Read plan once. Extract task list, file paths, test commands, criteria for dependency analysis. For each task without a `complete` line: `bash <skill-dir>/scripts/task-brief <plan-path> N` → `<ws>/task-N-brief.md`. Exit 3 → write the task text you extracted to that path yourself and append `Task <N>: note: brief fallback (heading not found)`. Never paste plan text into a dispatch; never make subagents read the whole plan.
 
 ### A-2: Dependency Analysis
 - **File-based:** B creates file C imports → B before C
@@ -200,24 +242,28 @@ Read plan once. Extract ALL tasks with full text, file paths, test commands, cri
 
 ### A-5: Read Sprint Contracts
 
-Read `docs/team-dd/sprints/<topic>/common.md` and each `docs/team-dd/sprints/<topic>/task-N.md`. These files are authoritative for Reviewer Profile, Effort Score, Success Criteria, Non-Goals, and Validation. Do not regenerate.
+Read `docs/team-dd/sprints/<topic>/common.md` and each `docs/team-dd/sprints/<topic>/task-N.md`. These files are authoritative for Reviewer Profile, Effort Score, Success Criteria, Non-Goals, and Validation. Do not regenerate. Subagents read them by path.
 
 ### A-6: Team Composition
 
 Report before Phase B:
 ```
-Team: Lead (orchestration), Workers: N, Reviewer: [profiles], Architect: [tasks if any]
+Team: Lead (orchestration), Workers: N, Reviewer: [profiles], Architect: [tasks if any], Final Reviewer: opus
 ```
 
 ## Phase B: Delegate
 
 **Review is mandatory.** Every task — Full and Lite — dispatches a Reviewer before cherry-pick. No exceptions.
 
-Execute in dependency order. Parallelize independent tasks (up to 2 Workers, each in own worktree, never sharing files). Cherry-pick in plan order.
+No `Run:` line yet → append `Run: base-branch <name>, run-base <sha7>` (run-base = `git rev-parse <base-branch>`; Worktree Mode: `HEAD`).
+
+Execute in dependency order, skipping `complete` tasks. Parallelize independent tasks (up to 2 Workers, each in own worktree, never sharing files). Cherry-pick in plan order.
+
+**Lead context discipline:** keep only return contracts, verdict lines, and ledger lines you write. Everything else moves as files.
 
 ### B-1: Architect Review (design tasks only)
 
-Effort 3+ AND design decisions → dispatch Architect with task text, codebase context, related tasks, questions. Receives design brief → attach to Worker. Template: `./prompts/architect-prompt.md`
+Effort 3+ AND design decisions → dispatch Architect per `./prompts/architect-prompt.md` (paths only). Save the returned design brief verbatim to `<ws>/task-N-design.md`.
 
 ### B-2: Dispatch Worker
 
@@ -229,14 +275,16 @@ git worktree add .claude/worktrees/agent-<task-id> -b worktree-agent-<task-id> <
 
 `<task-id>` is unique per dispatch (e.g., task index plus a 4-char random suffix to allow parallelism). `<base-branch>` is the value resolved in Phase A-0. On failure (path or branch collision), retry once with a fresh `<task-id>`, then escalate.
 
-Send to the Worker: full task text, `docs/team-dd/sprints/<topic>/common.md` + `docs/team-dd/sprints/<topic>/task-N.md` content, Domain Guidelines content (from common.md's Domain Guidelines section), design brief (if any), codebase context, and the worktree path/branch via the `## Worktree` block in `prompts/worker-prompt.md`. Model per the task-N.md Effort Score. **Do not pass `isolation: "worktree"`** — the Lead-managed worktree replaces it.
+Record `BASE` = `git rev-parse <base-branch>` at worktree creation (Worktree Mode: `HEAD` before dispatch; tasks run sequentially there).
 
-**Codebase Context rules:**
-- Full content: only files Worker must modify
-- Reference files: path + one-line description (Worker reads on demand via Read tool)
-- Budget: ≤ 2 KB pre-sent content (excluding modification targets)
+Dispatch per `./prompts/worker-prompt.md` Initial Dispatch: worktree block, `## Read First` paths (brief, `common.md`, `task-N.md`, design brief, applicable guidelines), `## Context From Lead`, report path `<ws>/task-N-report.md`. Model per the task-N.md Effort Score. **Do not pass `isolation: "worktree"`** — the Lead-managed worktree replaces it.
 
-Template: `./prompts/worker-prompt.md`
+When the dispatch returns, append `Task <N>: dispatched (worktree <path>, branch <branch>, base <sha7>, agent <id>, model <m>)`. The agent id is required for fix rounds 1–3.
+
+**Context From Lead rules:**
+- One line on where the task fits; interfaces/decisions from earlier tasks the brief cannot know; your resolution of any brief ambiguity
+- Reference files: path + one-line description (Worker reads on demand). No file contents
+- Budget: ≤ 2 KB. Never paste plan text, contract text, or prior-task summaries
 
 ### B-3: Handle Worker Status
 
@@ -249,22 +297,43 @@ Template: `./prompts/worker-prompt.md`
 
 Never force retry without changes.
 
-**On DONE/DONE_WITH_CONCERNS:** Store `### Implementation Summary`, `### Files Changed`, `### Test Results` per task → C-2. Missing summary → synthesise from commits+diff. Missing test results → not reported.
+**On DONE/DONE_WITH_CONCERNS:** confirm `<ws>/task-N-report.md` exists and is non-empty. Missing → send back once to the same Worker; still missing → synthesise Implementation Summary / Files Changed / Test Results from commits + diff into the report file and append `Task <N>: note: report synthesised`. Do not read the full report into context before C-1.
 
 ### B-4: Review
 
-**static (Lead):** Read diff → evidence table per Success Criterion from `docs/team-dd/sprints/<topic>/task-N.md` (MET/NOT_MET + evidence) → verify Non-Goals → L-prefixed findings in Ledger → verdict.
-
-**runtime/browser (Reviewer agent):** Dispatch with diff + `docs/team-dd/sprints/<topic>/common.md` + `docs/team-dd/sprints/<topic>/task-N.md`. Reviewer runs validation + checks integration (+ browser items for browser profile). Template: `./prompts/reviewer-prompt.md`
-
-**Ledger integration (all profiles):** Transfer W-prefixed and R/L-prefixed findings → record dispositions → verify critical/major all `fixed`.
+1. `bash <skill-dir>/scripts/review-package <plan-path> <BASE> <head-ref>` — head-ref = worktree branch (Worktree Mode: `HEAD`). Prints `wrote <path>: ...`. Never use `HEAD~1`. Exit 3 (empty range) → treat as NEEDS_CONTEXT: tell the Worker to commit.
+2. **static (Lead):** read the package → evidence table per Success Criterion from `task-N.md` (MET/NOT_MET + evidence) → verify Non-Goals → L-prefixed findings → write to `<ws>/task-N-review-r0.md` → verdict.
+3. **runtime/browser (Reviewer agent):** dispatch per `./prompts/reviewer-prompt.md` (paths only). The Reviewer writes `<ws>/task-N-review-r0.md` and returns the verdict lines.
+4. Append `Task <N>: review round 0 <verdict> (<counts>)`. Each minor/recommendation → `Task <N>: minor (deferred): <one-liner>`. Append the `## Task N Review Ledger` section: W-prefixed (report's Self-Review table) and R/L-prefixed findings with dispositions.
+5. APPROVE → B-6. REQUEST_CHANGES or any NOT_MET → B-5.
 
 ### Verdict Rules
 
 Severity → verdict mapping is defined in `agents/reviewer.md`. The Lead applies the same rules when running a static-profile review.
 
-### B-5: Fix Loop (max 3 rounds)
-REQUEST_CHANGES → issues to Worker → fix in same worktree → re-review → APPROVE or 3 rounds → escalate.
+### B-5: Fix Loop (max 5 rounds)
+
+Minor/recommendation findings never enter the loop (ledgered as deferred in B-4; triaged in C-1.5). Open findings = critical/major + NOT_MET criteria. One round = one fix dispatch + one scoped re-review.
+
+| Round | Implementer | Model |
+|---|---|---|
+| 1–3 | Resume the original Worker via `SendMessage` (agent id from the `dispatched` line) with open findings verbatim — worker-prompt.md Fix Round template | Original |
+| 4–5 | Fresh Worker in the same worktree — worker-prompt.md Fresh Worker template | One tier above original (haiku→sonnet→opus; opus stays opus) |
+
+`SendMessage` unavailable or failing → Fresh Worker on the round's model.
+
+**Every round:**
+1. Worker fixes, re-runs covering tests, commits, appends `## Fix Round R` to the report, returns the short contract.
+2. Confirm the appended section names covering tests, command, and output. Missing → send back once to the same Worker.
+3. `FIX_BASE` = branch head the previous review saw. `bash <skill-dir>/scripts/review-package <plan-path> <FIX_BASE> <head-ref>`.
+4. Scoped re-review per `./prompts/re-review-prompt.md` with the findings list → `<ws>/task-N-review-rR.md` (static: Lead does it under agents/reviewer.md `## Mode: re-review`). New critical/major breakage in the fix diff joins the open findings. Out-of-scope observations → `Task <N>: minor (deferred): ...`; they never extend the loop.
+5. Append `Task <N>: fix round <R>/5 (...)` and update the task's Review Ledger dispositions.
+
+All addressed → B-6.
+
+**Cap:** round 5 re-review still has open findings → append `Task <N>: escalated: <open finding IDs>` and escalate to the user with the open findings and the report path. Independent tasks may continue meanwhile; dependents wait.
+
+The Lead never fixes findings itself.
 
 ### B-6: Cherry-pick to Base Branch
 
@@ -274,14 +343,27 @@ git cherry-pick --no-commit <hash>
 git commit -m "<task description>"
 ```
 
-`<base-branch>` is the value resolved in Phase A-0. **Conflicts:** Lead resolves. Non-trivial → re-dispatch Reviewer (outside 3-round limit). Cannot resolve → escalate. Record in Ledger.
+`<base-branch>` is the value resolved in Phase A-0. **Conflicts:** Lead resolves. Non-trivial → re-dispatch Reviewer (outside the 5-round limit). Cannot resolve → escalate. Record in the task's Review Ledger.
+
+After the commit, append `Task <N>: complete (cherry-pick <sha7>)`. Worktree Mode: no cherry-pick; append `Task <N>: complete (cherry-pick <HEAD sha7>)`.
 
 **Progress:** "Task N/Total complete — [task name]"
 
 ## Phase C: Post-delegate
 
 ### C-1: Collect Results
-Gather commit hashes, file changes, test results, implementation summaries, deferred details (from B-3).
+Read `<ws>/ledger.md`, each `task-N-report.md`, and review files. Build C-2 from files, not memory.
+
+### C-1.5: Final Whole-Branch Review
+
+Skip when no task reached `complete` in this run.
+
+1. `bash <skill-dir>/scripts/review-package <plan-path> <run-base> <base-branch>` (Worktree Mode: `HEAD`).
+2. Dispatch per `./prompts/final-review-prompt.md` (opus) → `<ws>/final-review.md`. Append `Final: review <verdict> (<counts>)`.
+3. APPROVE with no `must-fix` triage → append `Final: complete`, go to C-2.
+4. Otherwise ONE fix Worker with the complete findings list (never one per finding), model opus, in a new worktree from current `<base-branch>` HEAD (Worktree Mode: current directory). Use the worker-prompt.md Initial Dispatch with `<ws>/final-review.md` as the task brief, `common.md` as the only contract, report `<ws>/final-report.md`.
+5. One scoped re-review per `./prompts/re-review-prompt.md` over the fix range → `<ws>/final-review-r1.md`. Cherry-pick as in B-6. Append `Final: fix (commits ...), re-review <result>` then `Final: complete`.
+6. No second fix wave. Residual open findings → C-2 `### Final Review Residuals` and surfaced to the user.
 
 ### C-2: Completion Report
 ```markdown
@@ -298,6 +380,13 @@ Gather commit hashes, file changes, test results, implementation summaries, defe
 | # | Source | Severity | Finding | Disposition | Detail |
 ### Deferred Items (skip if none)
 | # | Task | Severity | Finding | Disposition | Reason |
+### Final Review
+- Verdict: APPROVE | REQUEST_CHANGES → fixed (commit <sha7>)
+- Findings: Nc, NM, Nm, Nr; deferred triaged: N must-fix, N keep-deferred
+### Final Review Residuals (skip if none)
+| # | Severity | Finding | Reason open |
+### Escalated Tasks (skip if none)
+| Task | Open findings | Report |
 ### Summary
 - Files changed / Commits / Architect consulted / Avg rounds / Findings / Deferred
 ### Commit Log
@@ -307,19 +396,19 @@ Gather commit hashes, file changes, test results, implementation summaries, defe
 ### C-3: Verify
 All plan tasks complete. All tests pass on the base branch. No uncommitted changes.
 
-### C-4: Worktree Cleanup
+### C-4: Worktree and Workspace Cleanup
 
 Present to user:
 
 ```
+Run workspace: .team-dd/runs/<slug>/ (ledger, briefs, reports, reviews)
 Worktrees from this session:
 - .claude/worktrees/agent-XXXX (branch: worktree-agent-XXXX)
 Clean up all? [Yes / No / Select]
 ```
 
-- **Yes** → `git worktree remove` + `git branch -D` for each, then `git worktree prune`.
+- **Yes** → `git worktree remove` + `git branch -D` for each, `git worktree prune`, then `rm -rf <ws>`.
 - **Select** → user picks which to keep.
-- **No** → skip. Warn worktrees persist until manual removal.
+- **No** → skip. Warn worktrees and workspace persist until manual removal.
 
-Skip only when no session worktrees exist.
-
+Any `escalated` task or final residual → the workspace is kept on **Yes** (say so in the prompt); remove it only if the user selects it explicitly. Skip the prompt only when no session worktrees and no workspace exist.

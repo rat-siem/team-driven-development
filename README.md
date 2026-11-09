@@ -35,7 +35,7 @@ Instead of a single agent doing everything, Team-Driven Development assigns spec
 
 - **The person who writes the code doesn't review it.** Worker and Reviewer are separate agents with separate context. This eliminates self-review bias — the most common failure mode when a single agent implements and validates its own work.
 - **Success criteria are locked before work begins.** Sprint Contracts define what "done" means before a single line is code is written. No scope drift, no moving goalposts, no "looks good to me" reviews.
-- **Every review finding is tracked to resolution.** The Review Ledger records each finding across fix rounds with a disposition (fixed / deferred / wont-fix). Nothing gets silently dropped.
+- **Every review finding is tracked to resolution.** The Run Ledger records each finding across fix rounds with a disposition (fixed / deferred / wont-fix). Nothing gets silently dropped.
 - **Base branch stays safe.** Workers operate in isolated git worktrees branched from the resolved base branch (defaults to the current branch; override with `--branch=<name>`). Changes only reach the base branch after review approval and cherry-pick — a failed task never pollutes the working tree.
 - **Token cost scales with task complexity.** Effort Scoring assigns cheaper models (Haiku) to simple tasks and reserves expensive models (Opus) for complex ones. You don't pay Opus prices to rename a variable.
 - **Independent tasks run in parallel.** Dynamic dependency analysis identifies tasks that can run simultaneously, dispatching multiple Workers in separate worktrees.
@@ -121,7 +121,9 @@ Engine-level features that aren't skills but show up across the pipeline:
 - **Worktree isolation** — Workers run in isolated git worktrees branched from the resolved base branch; changes reach the base branch only after review approval.
 - **Base branch selection** — Defaults to the current branch; override with `--branch=<name>`. The resolved value is recorded in spec / plan / Sprint Contract headers so downstream skills (`quick-brainstorm`, `deep-brainstorm`, `team-plan`, `team-driven-development`) skip re-prompting.
 - **Worktree-aware execution** — Detects when invoked from inside a worktree and adapts (no sub-worktrees, no cherry-pick; `--branch` is ignored with a warning).
-- **Review Ledger** — Every review finding tracked across rounds with disposition (fixed / deferred / wont-fix) and surfaced in the completion report.
+- **Run Ledger & resume** — Progress and every review finding (with disposition fixed / deferred / wont-fix) are appended to `.team-dd/runs/<plan>/ledger.md`. The ledger survives context compaction; re-running a plan skips completed tasks.
+- **File-based handoff** — Task briefs, Worker reports, and review packages move between agents as files in the run workspace instead of being pasted into prompts, keeping the Lead's context small.
+- **Final whole-branch review** — After all tasks land, an opus Reviewer checks the integrated diff for cross-task defects and triages deferred minors; one fix wave if needed.
 - **Domain Guidelines** — Auto-detects missing domain guidelines, drafts from existing code, and embeds approved guidelines into Sprint Contracts.
 - **Sprint Contract QA** — Contracts validated before Worker dispatch (verifiable criteria, non-goals, profile match).
 - **Dynamic dependency analysis** — Execution order derived from plan content at runtime.
@@ -303,13 +305,14 @@ The core pipeline reviews every Worker's output, so `solo-review` is for situati
 1. Dispatch Architect for design brief (if needed)
 2. Dispatch Worker in isolated worktree
 3. Review against Sprint Contract with **evidence table** (every criterion gets MET/NOT_MET + evidence)
-4. Fix loop (max 3 rounds) if REQUEST_CHANGES — all findings tracked in **Review Ledger** with dispositions
+4. Fix loop (max 5 rounds) if REQUEST_CHANGES — rounds 1–3 resume the same Worker, rounds 4–5 hand off to a fresh Worker one model tier up; each round gets a scoped re-review of the fix diff only. Findings tracked in the **Run Ledger** with dispositions
 5. Cherry-pick to the resolved base branch on APPROVE (conflict resolution flow if needed)
 
 ### Phase C: Post-delegate
 1. Collect all results
-2. Generate **completion report** with implementation summary (what was built per task), test results, per-task review detail (findings, dispositions), and deferred items with reasons
-3. Verify all tasks complete
+2. Final whole-branch review (opus) of the integrated result, with at most one fix wave
+3. Generate **completion report** with implementation summary (what was built per task), test results, per-task review detail (findings, dispositions), and deferred items with reasons
+4. Verify all tasks complete
 
 ## Sprint Contract Example
 
@@ -402,3 +405,5 @@ claude plugin update team-driven-development
 ## License
 
 MIT
+
+The run-workspace helpers, scoped re-review, file-based handoff, and fix-loop escalation are adapted from [obra/superpowers](https://github.com/obra/superpowers) (MIT License, Copyright (c) 2025 Jesse Vincent).
